@@ -21,7 +21,6 @@
             align-items: center;
             justify-content: flex-start;
             padding-top: 40px;
-            /* spinge leggermente in basso */
             position: relative;
         }
 
@@ -70,7 +69,6 @@
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
-            /* distanza maggiore tra i pulsanti */
             width: 90%;
             max-width: 350px;
         }
@@ -131,6 +129,7 @@
 
 <body class="mobile">
     <h2>Giudice <span id="nomeGiudice" style="font-weight:normal;"></span></h2>
+
     <!-- Setup iniziale -->
     <div id="setup">
         <label for="nome">Nome:</label>
@@ -153,8 +152,68 @@
         <div class="hint">Il tuo nome e slot resteranno salvati per i prossimi concorrenti.</div>
     </div>
 
+    <!-- Suoni identici alla dashboard -->
+    <audio id="suonoX" src="suono-x.mp3" preload="auto"></audio>
+    <audio id="suonoVai" src="suono-vai.mp3" preload="auto"></audio>
+
     <script src="/socket.io/socket.io.js"></script>
-    <script src="client-mobile.js"></script>
+    <script>
+        const socket = io();
+
+        const setupDiv = document.getElementById('setup');
+        const pulsantiDiv = document.getElementById('pulsanti');
+
+        const nomeInput = document.getElementById('nome');
+        const slotSelect = document.getElementById('slot');
+        const btnConferma = document.getElementById('btnConferma');
+
+        const btnX = document.getElementById('btnX');
+        const btnVAI = document.getElementById('btnVAI');
+        const btnResetNome = document.getElementById('btnResetNome');
+
+        const suonoX = document.getElementById('suonoX');
+        const suonoVai = document.getElementById('suonoVai');
+
+        const nomeGiudiceSpan = document.getElementById('nomeGiudice');
+
+        let nome, slot;
+
+        btnConferma.addEventListener('click', () => {
+            nome = nomeInput.value.trim();
+            slot = parseInt(slotSelect.value);
+
+            if (!nome) {
+                alert('Inserisci il tuo nome!');
+                return;
+            }
+
+            socket.emit('registrazione', { nome, slot });
+
+            setupDiv.style.display = 'none';
+            pulsantiDiv.style.display = 'flex';
+            nomeGiudiceSpan.textContent = nome; // Mostra il nome del giudice
+        });
+
+        btnX.addEventListener('click', () => {
+            socket.emit('scelta', { nome, slot, scelta: 'X' });
+            suonoX.play();
+        });
+
+        btnVAI.addEventListener('click', () => {
+            socket.emit('scelta', { nome, slot, scelta: 'VAI' });
+            suonoVai.play();
+        });
+
+        btnResetNome.addEventListener('click', () => {
+            nome = null;
+            slot = null;
+            nomeInput.value = '';
+            slotSelect.value = '1';
+            pulsantiDiv.style.display = 'none';
+            setupDiv.style.display = 'flex';
+            nomeGiudiceSpan.textContent = '';
+        });
+    </script>
 </body>
 
 </html>
