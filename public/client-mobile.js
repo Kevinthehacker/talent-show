@@ -52,4 +52,17 @@ btnResetNome.addEventListener('click', () => {
   selectSlot.value = '1';
   setup.style.display = 'flex';
   pulsanti.style.display = 'none';
+
+});
+
+socket.on('logout', () => {
+    // Nasconde i pulsanti di scelta
+    document.getElementById('pulsanti').style.display = 'none';
+    // Mostra di nuovo il setup
+    document.getElementById('setup').style.display = 'flex';
+    // Pulisce i campi input
+    document.getElementById('nome').value = '';
+    document.getElementById('slot').value = '1';
+    // Pulisce il nome visualizzato
+    document.getElementById('nomeGiudice').textContent = '';
 });
