@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard - Talent Show</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dashboard">
+  <h1>Dashboard Giudici</h1>
+
+  <div id="giudici" class="grid-giudici">
+    <div id="slot1" class="card-giudice">
+      <div class="giudice-nome">Slot 1</div>
+      <div class="cerchio rosso" id="slot1x">X</div>
+      <div class="cerchio verde" id="slot1vai">VAI</div>
+    </div>
+    <div id="slot2" class="card-giudice">
+      <div class="giudice-nome">Slot 2</div>
+      <div class="cerchio rosso" id="slot2x">X</div>
+      <div class="cerchio verde" id="slot2vai">VAI</div>
+    </div>
+    <div id="slot3" class="card-giudice">
+      <div class="giudice-nome">Slot 3</div>
+      <div class="cerchio rosso" id="slot3x">X</div>
+      <div class="cerchio verde" id="slot3vai">VAI</div>
+    </div>
+    <div id="slot4" class="card-giudice">
+      <div class="giudice-nome">Slot 4</div>
+      <div class="cerchio rosso" id="slot4x">X</div>
+      <div class="cerchio verde" id="slot4vai">VAI</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="btnReset" class="btn btn-reset">🔄 Reset concorrente</button>
+  </div>
+
+  <audio id="audioX" src="x.mp3" preload="auto"></audio>
+  <audio id="audioVAI" src="vai.mp3" preload="auto"></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client-dashboard.js"></script>
+</body>
+</html>
