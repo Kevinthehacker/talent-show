@@ -49,6 +49,13 @@ socket.on('aggiorna', (stato) => {
   renderGiudici(stato);
 });
 
+const btnResetGiudici = document.getElementById('btnResetGiudici');
+btnResetGiudici.addEventListener('click', () => {
+    if (confirm("Sei sicuro di voler resettare tutti i giudici?")) {
+        socket.emit('reset-giudici');
+    }
+});
+
 // Riproduzione suoni
 socket.on('suono', (scelta) => {
   if (scelta === 'X') {
@@ -65,3 +72,4 @@ socket.on('suono', (scelta) => {
 socket.on('errore', (msg) => {
   alert(msg);
 });
+
