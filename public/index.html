@@ -4,6 +4,30 @@
   <meta charset="UTF-8" />
   <title>Dashboard - Talent Show</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Pulsante Reset Giudici */
+    .btn-reset-giudici {
+        background-color: #ff073a; /* rosso neon */
+        color: white;
+        font-weight: bold;
+        padding: 0.8rem 1.2rem;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+    .btn-reset-giudici:hover {
+        background-color: #b02a37;
+    }
+
+    .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body class="dashboard">
   <h1>Dashboard Giudici</h1>
@@ -33,6 +57,7 @@
 
   <div class="controls">
     <button id="btnReset" class="btn btn-reset">🔄 Reset concorrente</button>
+    <button id="btnResetGiudici" class="btn-reset-giudici">🚨 Reset Giudici</button>
   </div>
 
   <audio id="audioX" src="x.mp3" preload="auto"></audio>
