@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
   for (let i = 1; i <= 4; i++) {
     giudici[i] = null;
   }
-  io.emit('aggiorna', giudici); // aggiorna dashboard
+  io.emit('aggiorna', stato); // aggiorna dashboard
   io.emit('logout'); // forza logout sui dispositivi dei giudici
 });
 
@@ -71,3 +71,4 @@ server.listen(PORT, () => {
   console.log(`Server attivo su http://localhost:${PORT}`);
 
 });
+
