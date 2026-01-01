@@ -5,9 +5,9 @@
   <title>Dashboard - Talent Show</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Pulsante Reset Giudici */
+    /* Stili inline mantenuti per il pulsante reset giudici */
     .btn-reset-giudici {
-        background-color: #ff073a; /* rosso neon */
+        background-color: #ff073a;
         color: white;
         font-weight: bold;
         padding: 0.8rem 1.2rem;
@@ -17,16 +17,8 @@
         margin-bottom: 1rem;
         font-size: 1rem;
     }
-    .btn-reset-giudici:hover {
-        background-color: #b02a37;
-    }
-
-    .controls {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
+    .btn-reset-giudici:hover { background-color: #b02a37; }
+    .controls { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
   </style>
 </head>
 <body class="dashboard">
@@ -36,22 +28,18 @@
     <div id="slot1" class="card-giudice">
       <div class="giudice-nome">Slot 1</div>
       <div class="cerchio rosso" id="slot1x">X</div>
-     
     </div>
     <div id="slot2" class="card-giudice">
       <div class="giudice-nome">Slot 2</div>
       <div class="cerchio rosso" id="slot2x">X</div>
-      
     </div>
     <div id="slot3" class="card-giudice">
       <div class="giudice-nome">Slot 3</div>
       <div class="cerchio rosso" id="slot3x">X</div>
-      
     </div>
     <div id="slot4" class="card-giudice">
       <div class="giudice-nome">Slot 4</div>
       <div class="cerchio rosso" id="slot4x">X</div>
-      
     </div>
   </div>
 
@@ -60,11 +48,9 @@
     <button id="btnResetGiudici" class="btn-reset-giudici">🚨 Reset Giudici</button>
   </div>
 
-  <audio id="audioX" src="x.mp3" preload="auto"></audio>
   <audio id="audioVAI" src="vai.mp3" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="client-dashboard.js"></script>
 </body>
 </html>
-
