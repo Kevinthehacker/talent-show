@@ -92,7 +92,7 @@ h1 {
   color: #fff;
 }
 
-/* Cerchi */
+/* Cerchi Base */
 .cerchio {
   width: 90px;
   height: 90px;
@@ -105,6 +105,8 @@ h1 {
   color: #fff;
   opacity: 0.4;
   transition: all 0.3s ease;
+  position: relative; /* FONDAMENTALE per centrare il ::before */
+  z-index: 1; /* Crea un contesto di impilamento */
 }
 
 /* Cerchio rosso */
@@ -113,54 +115,40 @@ h1 {
   box-shadow: 0 0 10px #b71c1c;
 }
 
-/* Cerchio verde */
-.cerchio.verde {
-  background: #1b5e20;
-  box-shadow: 0 0 10px #1b5e20;
-}
-
-/* Cerchio attivo */
+/* Stato Attivo */
 .cerchio.attivo {
-  position: relative;
   opacity: 1;
+  transform: scale(1.1); /* Leggero zoom quando attivo per enfasi */
 }
 
-/* Glow rotante rosso */
+/* Glow rotante rosso (CORRETTO) */
 .cerchio.rosso.attivo::before {
   content: "";
   position: absolute;
-  top: -8px;
-  left: -8px;
-  width: 106px;
-  height: 106px;
+  /* Centriamo perfettamente */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  
+  width: 110px;  /* Leggermente più largo del cerchio (90px) */
+  height: 110px;
   border-radius: 50%;
-  border: 3px solid transparent;
-  border-top: 3px solid #e53935;
-  border-right: 3px solid #e53935;
-  animation: spinGlow 1s linear infinite;
-  z-index: -1;
+  border: 4px solid transparent; /* Bordo leggermente più spesso */
+  border-top: 4px solid #ff5252; /* Rosso più acceso per visibilità */
+  border-right: 4px solid #ff5252;
+  
+  z-index: -1; /* Va dietro al testo/cerchio */
+  box-sizing: border-box; /* Evita calcoli errati delle dimensioni */
+  pointer-events: none;
+  
+  /* Animazione: aggiungiamo la rotazione al translate esistente */
+  animation: spinGlowCorrected 1s linear infinite;
 }
 
-/* Glow rotante verde */
-.cerchio.verde.attivo::before {
-  content: "";
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  width: 106px;
-  height: 106px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  border-top: 3px solid #43a047;
-  border-right: 3px solid #43a047;
-  animation: spinGlow 1s linear infinite;
-  z-index: -1;
-}
-
-/* Animazione rotazione */
-@keyframes spinGlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Nuova animazione che mantiene il centro */
+@keyframes spinGlowCorrected {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Pulsante reset */
@@ -183,3 +171,4 @@ h1 {
 .btn-reset:hover {
   background: #ffe066;
 }
+
