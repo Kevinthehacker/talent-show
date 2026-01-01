@@ -59,8 +59,8 @@ btnResetGiudici.addEventListener('click', () => {
 // Riproduzione suoni
 socket.on('suono', (scelta) => {
   if (scelta === 'X') {
-    audioX.currentTime = 0;
-    audioX.play();
+    audioVAI.currentTime = 0;
+    audioVAI.play();
   }
   if (scelta === 'VAI') {
     audioVAI.currentTime = 0;
@@ -72,4 +72,5 @@ socket.on('suono', (scelta) => {
 socket.on('errore', (msg) => {
   alert(msg);
 });
+
 
