@@ -8,7 +8,7 @@ const audioVAI = document.getElementById('audioVAI');
 // Riattiva animazione glow rotante
 function triggerAnimazione(cerchio) {
   cerchio.classList.remove('attivo');
-  void cerchio.offsetWidth; // forza reflow per riavviare animazione
+  void cerchio.offsetWidth; // Forza il "reflow" (riavvio animazione)
   cerchio.classList.add('attivo');
 }
 
@@ -70,3 +70,4 @@ socket.on('suono', (scelta) => {
 socket.on('errore', (msg) => {
   alert(msg);
 });
+
