@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Regia - Oratorio's Got Talent</title>
+    <style>
+        :root { --dark: #1a1a1a; --panel: #2d2d2d; --accent: #ffd700; --red: #e53935; --green: #43a047; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 100vh; margin: 0; box-sizing: border-box; }
+        
+        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        
+        /* Pannelli */
+        .panel { background: var(--panel); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* Monitor Giudici (Miniatura) */
+        .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .mini-slot { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #444; }
+        .mini-slot.attivo { background: #500; border-color: var(--red); }
+        .status-dot { height: 15px; width: 15px; background: #333; border-radius: 50%; display: inline-block; margin-left: 10px; }
+        .status-dot.on { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+        /* Audio Console */
+        .audio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .btn-sound { border: none; padding: 20px; font-size: 1.2em; font-weight: bold; color: white; border-radius: 10px; cursor: pointer; transition: transform 0.1s; position: relative; overflow: hidden; }
+        .btn-sound:active { transform: scale(0.95); }
+        
+        /* Colori Bottoni */
+        .bg-blue { background: #1976d2; }   /* Sigla */
+        .bg-purple { background: #7b1fa2; } /* Sottofondo */
+        .bg-orange { background: #f57c00; } /* Suspense */
+        .bg-green { background: var(--green); } /* Vittoria */
+        .bg-red { background: var(--red); }     /* Reset */
+
+        /* Fader Volume */
+        .fader-group { margin-top: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+        input[type=range] { width: 60%; cursor: pointer; }
+        
+        /* Indicatore riproduzione */
+        .playing-indicator { position: absolute; top: 5px; right: 5px; font-size: 0.8em; opacity: 0; }
+        .playing .playing-indicator { opacity: 1; animation: blink 1s infinite; }
+        
+        @keyframes blink { 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+    <div class="panel">
+        <h2>👁️ Monitor Live</h2>
+        <div class="monitor-grid" id="monitor">
+            <div class="mini-slot" id="mon1">Slot 1 <span class="status-dot"></span></div>
+            <div class="mini-slot" id="mon2">Slot 2 <span class="status-dot"></span></div>
+            <div class="mini-slot" id="mon3">Slot 3 <span class="status-dot"></span></div>
+            <div class="mini-slot" id="mon4">Slot 4 <span class="status-dot"></span></div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h2>⚙️ Gestione</h2>
+            <button onclick="resetGara()" class="btn-sound bg-red" style="width:100%">🔄 NUOVO CONCORRENTE (Reset X)</button>
+            <br><br>
+            <button onclick="resetTotale()" style="background:#444; color:#ccc; border:none; padding:10px; width:100%; border-radius:5px;">⚠️ Reset Totale Giudici</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>🎛️ Audio Console</h2>
+        
+        <div class="audio-grid">
+            <button class="btn-sound bg-blue" onclick="toggleAudio('sigla')">
+                🎵 SIGLA
+                <span class="playing-indicator">▶</span>
+            </button>
+            <button class="btn-sound bg-purple" onclick="toggleAudio('sottofondo')">
+                🍸 SOTTOFONDO
+                <span class="playing-indicator">▶</span>
+            </button>
+            <button class="btn-sound bg-orange" onclick="toggleAudio('suspense')">
+                😬 SUSPENSE
+                <span class="playing-indicator">▶</span>
+            </button>
+            <button class="btn-sound bg-green" onclick="playEffect('vittoria')">
+                🏆 VITTORIA
+            </button>
+        </div>
+
+        <div class="fader-group">
+            <span>Vol. Musica</span>
+            <input type="range" id="volMusic" min="0" max="1" step="0.1" value="0.5" oninput="setVolume('music', this.value)">
+        </div>
+        <div class="fader-group">
+            <span>Vol. Effetti</span>
+            <input type="range" id="volSfx" min="0" max="1" step="0.1" value="1" oninput="setVolume('sfx', this.value)">
+        </div>
+
+        <div style="margin-top:20px; font-size:0.8em; color:#888;">
+            *Clicca sui pulsanti colorati per avviare/stoppare il loop.<br>
+            *VITTORIA è un effetto singolo (non va in loop).
+        </div>
+    </div>
+
+    <audio id="track-sigla" src="sigla.mp3" loop></audio>
+    <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
+    <audio id="track-suspense" src="suspense.mp3" loop></audio>
+    <audio id="fx-vittoria" src="vittoria.mp3"></audio>
+    <audio id="fx-vai" src="vai.mp3"></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        // --- GESTIONE AUDIO ---
+        const tracks = {
+            sigla: document.getElementById('track-sigla'),
+            sottofondo: document.getElementById('track-sottofondo'),
+            suspense: document.getElementById('track-suspense')
+        };
+        const sfx = {
+            vittoria: document.getElementById('fx-vittoria'),
+            vai: document.getElementById('fx-vai')
+        };
+
+        // Gestione Play/Stop Loop
+        function toggleAudio(name) {
+            const audio = tracks[name];
+            const btn = document.querySelector(`button[onclick="toggleAudio('${name}')"]`);
+            
+            // Ferma tutti gli altri loop prima di avviare questo (solo uno alla volta)
+            Object.keys(tracks).forEach(k => {
+                if (k !== name) {
+                    tracks[k].pause();
+                    tracks[k].currentTime = 0;
+                    document.querySelector(`button[onclick="toggleAudio('${k}')"]`).classList.remove('playing');
+                }
+            });
+
+            if (audio.paused) {
+                audio.play();
+                btn.classList.add('playing');
+            } else {
+                audio.pause();
+                audio.currentTime = 0; // Reset all'inizio
+                btn.classList.remove('playing');
+            }
+        }
+
+        // Gestione Effetti Singoli (Jingle)
+        function playEffect(name) {
+            // Ferma la musica di sottofondo momentaneamente se vuoi, o lasciala sotto
+            sfx[name].currentTime = 0;
+            sfx[name].play();
+        }
+
+        // Controllo Volume Globale
+        function setVolume(type, val) {
+            if (type === 'music') {
+                Object.values(tracks).forEach(t => t.volume = val);
+            } else {
+                Object.values(sfx).forEach(s => s.volume = val);
+            }
+        }
+        
+        // Inizializza volumi
+        setVolume('music', 0.5);
+        setVolume('sfx', 1.0);
+
+
+        // --- GESTIONE SOCKET (Monitoraggio) ---
+        socket.on('aggiorna', (stato) => {
+            for (let i = 1; i <= 4; i++) {
+                const slot = stato[i];
+                const el = document.getElementById(`mon${i}`);
+                const dot = el.querySelector('.status-dot');
+                
+                if (slot.nome) {
+                    el.innerHTML = `${slot.nome} <span class="status-dot"></span>`;
+                    // Se ha votato X
+                    if (slot.scelta === 'X') {
+                        el.querySelector('.status-dot').classList.add('on');
+                        el.classList.add('attivo');
+                    } else {
+                        el.querySelector('.status-dot').classList.remove('on');
+                        el.classList.remove('attivo');
+                    }
+                } else {
+                    el.innerHTML = `Slot ${i} (Vuoto) <span class="status-dot"></span>`;
+                }
+            }
+        });
+
+        // Suono X anche in regia per conferma
+        socket.on('suono', (scelta) => {
+            if (scelta === 'X') sfx.vai.play();
+        });
+
+        // Comandi al Server
+        function resetGara() {
+            socket.emit('reset');
+            // Ferma la musica suspense se è attiva
+            if (!tracks.suspense.paused) toggleAudio('suspense');
+        }
+        
+        function resetTotale() {
+            if(confirm("Vuoi scollegare tutti i giudici?")) socket.emit('reset-giudici');
+        }
+    </script>
+</body>
+</html>
