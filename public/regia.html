@@ -26,6 +26,7 @@
         
         /* Colori Bottoni */
         .bg-blue { background: #1976d2; }   /* Sigla */
+        .bg-cyan { background: #00acc1; }   /* Entrata (NUOVO) */
         .bg-purple { background: #7b1fa2; } /* Sottofondo */
         .bg-orange { background: #f57c00; } /* Suspense */
         .bg-green { background: var(--green); } /* Vittoria */
@@ -69,16 +70,24 @@
                 🎵 SIGLA
                 <span class="playing-indicator">▶</span>
             </button>
+            
+            <button class="btn-sound bg-cyan" onclick="toggleAudio('entrata')">
+                🚪 ENTRATA
+                <span class="playing-indicator">▶</span>
+            </button>
+
             <button class="btn-sound bg-purple" onclick="toggleAudio('sottofondo')">
                 🍸 SOTTOFONDO
                 <span class="playing-indicator">▶</span>
             </button>
+
             <button class="btn-sound bg-orange" onclick="toggleAudio('suspense')">
                 😬 SUSPENSE
                 <span class="playing-indicator">▶</span>
             </button>
-            <button class="btn-sound bg-green" onclick="playEffect('vittoria')">
-                🏆 VITTORIA
+
+            <button class="btn-sound bg-green" style="grid-column: span 2;" onclick="playEffect('vittoria')">
+                🏆 VITTORIA / PASSAGGIO TURNO
             </button>
         </div>
 
@@ -92,13 +101,12 @@
         </div>
 
         <div style="margin-top:20px; font-size:0.8em; color:#888;">
-            *Clicca sui pulsanti colorati per avviare/stoppare il loop.<br>
-            *VITTORIA è un effetto singolo (non va in loop).
+            *Clicca sui pulsanti colorati per avviare/stoppare il loop.
         </div>
     </div>
 
     <audio id="track-sigla" src="sigla.mp3" loop></audio>
-    <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
+    <audio id="track-entrata" src="entrata.mp3" loop></audio> <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
     <audio id="track-suspense" src="suspense.mp3" loop></audio>
     <audio id="fx-vittoria" src="vittoria.mp3"></audio>
     <audio id="fx-vai" src="vai.mp3"></audio>
@@ -110,6 +118,7 @@
         // --- GESTIONE AUDIO ---
         const tracks = {
             sigla: document.getElementById('track-sigla'),
+            entrata: document.getElementById('track-entrata'), // NUOVO RIFERIMENTO
             sottofondo: document.getElementById('track-sottofondo'),
             suspense: document.getElementById('track-suspense')
         };
@@ -118,17 +127,20 @@
             vai: document.getElementById('fx-vai')
         };
 
-        // Gestione Play/Stop Loop
+        // Gestione Play/Stop Loop (Tracce musicali)
         function toggleAudio(name) {
             const audio = tracks[name];
+            // Seleziona il bottone corretto in base all'evento onclick
             const btn = document.querySelector(`button[onclick="toggleAudio('${name}')"]`);
             
-            // Ferma tutti gli altri loop prima di avviare questo (solo uno alla volta)
+            // Ferma tutte le altre tracce
             Object.keys(tracks).forEach(k => {
                 if (k !== name) {
                     tracks[k].pause();
                     tracks[k].currentTime = 0;
-                    document.querySelector(`button[onclick="toggleAudio('${k}')"]`).classList.remove('playing');
+                    // Rimuove la classe playing dagli altri bottoni
+                    const otherBtn = document.querySelector(`button[onclick="toggleAudio('${k}')"]`);
+                    if(otherBtn) otherBtn.classList.remove('playing');
                 }
             });
 
@@ -144,7 +156,6 @@
 
         // Gestione Effetti Singoli (Jingle)
         function playEffect(name) {
-            // Ferma la musica di sottofondo momentaneamente se vuoi, o lasciala sotto
             sfx[name].currentTime = 0;
             sfx[name].play();
         }
@@ -172,7 +183,6 @@
                 
                 if (slot.nome) {
                     el.innerHTML = `${slot.nome} <span class="status-dot"></span>`;
-                    // Se ha votato X
                     if (slot.scelta === 'X') {
                         el.querySelector('.status-dot').classList.add('on');
                         el.classList.add('attivo');
@@ -186,16 +196,14 @@
             }
         });
 
-        // Suono X anche in regia per conferma
         socket.on('suono', (scelta) => {
             if (scelta === 'X') sfx.vai.play();
         });
 
-        // Comandi al Server
         function resetGara() {
             socket.emit('reset');
-            // Ferma la musica suspense se è attiva
-            if (!tracks.suspense.paused) toggleAudio('suspense');
+            // Opzionale: Ferma la suspense se attiva
+             if (!tracks.suspense.paused) toggleAudio('suspense');
         }
         
         function resetTotale() {
