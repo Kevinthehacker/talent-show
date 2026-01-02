@@ -4,325 +4,282 @@
     <meta charset="UTF-8">
     <title>Regia - Oratorio's Got Talent</title>
     <style>
-        :root { --dark: #1a1a1a; --panel: #2d2d2d; --accent: #ffd700; --red: #e53935; --green: #43a047; --blue: #1976d2; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; display: grid; grid-template-columns: 350px 1fr; gap: 20px; padding: 20px; height: 100vh; margin: 0; box-sizing: border-box; overflow: hidden; }
+        :root { --dark: #1a1a1a; --panel: #2d2d2d; --accent: #ffd700; --red: #e53935; --green: #43a047; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 100vh; margin: 0; box-sizing: border-box; }
         
-        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; font-size: 1.2rem; }
+        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
         
-        /* Layout a Colonna */
-        .col-left { display: flex; flex-direction: column; gap: 20px; }
-        .col-right { display: flex; flex-direction: column; gap: 20px; height: 100%; }
-
         /* Pannelli */
-        .panel { background: var(--panel); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .panel { background: var(--panel); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
-        /* Monitor Giudici */
+        /* Monitor Giudici (Miniatura) */
         .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .mini-slot { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #444; font-size: 0.9rem; }
+        .mini-slot { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #444; }
         .mini-slot.attivo { background: #500; border-color: var(--red); }
-        .status-dot { height: 10px; width: 10px; background: #333; border-radius: 50%; display: inline-block; margin-left: 5px; }
+        .status-dot { height: 15px; width: 15px; background: #333; border-radius: 50%; display: inline-block; margin-left: 10px; }
         .status-dot.on { background: var(--red); box-shadow: 0 0 10px var(--red); }
 
         /* Audio Console */
-        .audio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .btn-sound { border: none; padding: 15px; font-size: 1rem; font-weight: bold; color: white; border-radius: 8px; cursor: pointer; transition: transform 0.1s; position: relative; overflow: hidden; }
+        .audio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .btn-sound { border: none; padding: 20px; font-size: 1.2em; font-weight: bold; color: white; border-radius: 10px; cursor: pointer; transition: transform 0.1s; position: relative; overflow: hidden; }
         .btn-sound:active { transform: scale(0.95); }
-        .btn-sound.playing { border: 2px solid white; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
         
-        /* Colori */
-        .bg-blue { background: var(--blue); }
-        .bg-cyan { background: #00acc1; }
-        .bg-purple { background: #7b1fa2; }
-        .bg-orange { background: #f57c00; }
-        .bg-green { background: var(--green); }
-        .bg-red { background: var(--red); }
-        .bg-yt { background: #ff0000; } /* YouTube Red */
+        /* Colori Bottoni */
+        .bg-blue { background: #1976d2; }   /* Sigla */
+        .bg-cyan { background: #00acc1; }   /* Entrata (NUOVO) */
+        .bg-purple { background: #7b1fa2; } /* Sottofondo */
+        .bg-orange { background: #f57c00; } /* Suspense */
+        .bg-green { background: var(--green); } /* Vittoria */
+        .bg-red { background: var(--red); }     /* Reset */
 
-        /* Player YouTube */
-        #yt-container { position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 aspect ratio */ height: 0; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
-        #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        
-        /* Lista Concorrenti */
-        .contestant-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
-        .btn-contestant { background: #444; color: white; border: none; padding: 10px; text-align: left; border-radius: 5px; cursor: pointer; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .btn-contestant:hover { background: #555; }
-        .btn-contestant.active { background: var(--accent); color: black; font-weight: bold; }
-
-        /* Controlli Generici */
-        .fader-group { margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+        /* Fader Volume */
+        .fader-group { margin-top: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
         input[type=range] { width: 60%; cursor: pointer; }
+        
+        /* Indicatore riproduzione */
+        .playing-indicator { position: absolute; top: 5px; right: 5px; font-size: 0.8em; opacity: 0; }
+        .playing .playing-indicator { opacity: 1; animation: blink 1s infinite; }
+        
+        @keyframes blink { 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
 
-    <div class="col-left">
-        <div class="panel">
-            <h2>👁️ Monitor Live</h2>
-            <div class="monitor-grid" id="monitor">
-                <div class="mini-slot" id="mon1">Slot 1 <span class="status-dot"></span></div>
-                <div class="mini-slot" id="mon2">Slot 2 <span class="status-dot"></span></div>
-                <div class="mini-slot" id="mon3">Slot 3 <span class="status-dot"></span></div>
-                <div class="mini-slot" id="mon4">Slot 4 <span class="status-dot"></span></div>
-            </div>
-            <div style="margin-top: 15px; display:flex; gap:5px;">
-                <button onclick="resetGara()" class="btn-sound bg-red" style="flex:1; font-size:0.9rem;">🔄 RESET X</button>
-                <button onclick="resetTotale()" style="background:#444; color:#ccc; border:none; padding:10px; border-radius:5px;">⚠️</button>
-            </div>
+    <div class="panel">
+        <h2>👁️ Monitor Live</h2>
+        <div class="monitor-grid" id="monitor">
+            <div class="mini-slot" id="mon1">Slot 1 <span class="status-dot"></span></div>
+            <div class="mini-slot" id="mon2">Slot 2 <span class="status-dot"></span></div>
+            <div class="mini-slot" id="mon3">Slot 3 <span class="status-dot"></span></div>
+            <div class="mini-slot" id="mon4">Slot 4 <span class="status-dot"></span></div>
         </div>
 
-        <div class="panel">
-            <h2>🎛️ Effetti & Atmosfera</h2>
-            <div class="audio-grid">
-                <button class="btn-sound bg-blue" onclick="toggleAudio('sigla')">🎵 SIGLA</button>
-                <button class="btn-sound bg-cyan" onclick="toggleAudio('entrata')">🚪 ENTRATA</button>
-                <button class="btn-sound bg-purple" onclick="toggleAudio('sottofondo')">🍸 SOTTOFONDO</button>
-                <button class="btn-sound bg-orange" onclick="toggleAudio('suspense')">😬 SUSPENSE</button>
-                <button class="btn-sound bg-green" style="grid-column: span 2;" onclick="playEffect('vittoria')">🏆 VITTORIA</button>
-            </div>
-            <div class="fader-group">
-                <span>Vol. Atmosfera</span>
-                <input type="range" id="volMusic" min="0" max="1" step="0.1" value="0.5" oninput="setVolume('music', this.value)">
-            </div>
-            <div class="fader-group">
-                <span>Vol. Effetti</span>
-                <input type="range" id="volSfx" min="0" max="1" step="0.1" value="1" oninput="setVolume('sfx', this.value)">
-            </div>
+        <div style="margin-top: 30px;">
+            <h2>⚙️ Gestione</h2>
+            <button onclick="resetGara()" class="btn-sound bg-red" style="width:100%">🔄 NUOVO CONCORRENTE (Reset X)</button>
+            <br><br>
+            <button onclick="resetTotale()" style="background:#444; color:#ccc; border:none; padding:10px; width:100%; border-radius:5px;">⚠️ Reset Totale Giudici</button>
         </div>
     </div>
 
-    <div class="col-right">
-        <div class="panel" style="flex-grow: 1; display: flex; flex-direction: column;">
-            <h2>🎤 Player Concorrente</h2>
+    <div class="panel">
+        <h2>🎛️ Audio Console</h2>
+        
+        <div class="audio-grid">
+            <button class="btn-sound bg-blue" onclick="toggleAudio('sigla')">
+                🎵 SIGLA
+                <span class="playing-indicator">▶</span>
+            </button>
             
-            <div id="yt-container">
-                <div id="player"></div> </div>
+            <button class="btn-sound bg-cyan" onclick="toggleAudio('entrata')">
+                🚪 ENTRATA
+                <span class="playing-indicator">▶</span>
+            </button>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn-sound bg-yt" onclick="ytPlayPause()" style="flex:1;">⏯️ PLAY / PAUSA</button>
-                <button class="btn-sound" style="background:#333; flex:1;" onclick="ytRestart()">⏮️ Riavvia</button>
-                <button class="btn-sound" style="background:#333;" onclick="openStageWindow()">📺 MONITOR STAGE</button>
-            </div>
-            <div class="fader-group">
-                <span>Vol. YouTube</span>
-                <input type="range" id="volYT" min="0" max="100" value="100" oninput="ytSetVolume(this.value)">
-            </div>
+            <button class="btn-sound bg-purple" onclick="toggleAudio('sottofondo')">
+                🍸 SOTTOFONDO
+                <span class="playing-indicator">▶</span>
+            </button>
 
-            <hr style="border:0; border-top:1px solid #444; margin: 15px 0;">
+            <button class="btn-sound bg-orange" onclick="toggleAudio('suspense')">
+                😬 SUSPENSE
+                <span class="playing-indicator">▶</span>
+            </button>
 
-            <h3 style="margin-top:0; font-size:1rem; color:#aaa;">Playlist Esibizioni</h3>
-            <div class="contestant-list" id="contestantList">
-                </div>
+            <button class="btn-sound bg-green" style="grid-column: span 2;" onclick="playEffect('vittoria')">
+                🏆 VITTORIA / PASSAGGIO TURNO
+            </button>
+        </div>
+
+        <div class="fader-group">
+            <span>Vol. Musica</span>
+            <input type="range" id="volMusic" min="0" max="1" step="0.1" value="0.5" oninput="setVolume('music', this.value)">
+        </div>
+        <div class="fader-group">
+            <span>Vol. Effetti</span>
+            <input type="range" id="volSfx" min="0" max="1" step="0.1" value="1" oninput="setVolume('sfx', this.value)">
+        </div>
+
+        <div style="margin-top:20px; font-size:0.8em; color:#888;">
+            *Clicca sui pulsanti colorati per avviare/stoppare il loop.
         </div>
     </div>
 
     <audio id="track-sigla" src="sigla.mp3" loop></audio>
-    <audio id="track-entrata" src="entrata.mp3" loop></audio>
-    <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
+    <audio id="track-entrata" src="entrata.mp3" loop></audio> <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
     <audio id="track-suspense" src="suspense.mp3" loop></audio>
     <audio id="fx-vittoria" src="vittoria.mp3"></audio>
     <audio id="fx-vai" src="vai.mp3"></audio>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
-
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         
-        // --- 1. CONFIGURAZIONE CONCORRENTI (MODIFICA QUI!) ---
-        // Inserisci Nome e ID video (quello dopo v= nell'url di YouTube)
-        const playlistConcorrenti = [
-            { nome: "01. Marco (Chitarra)", id: "5s23_u6T58s" }, // Esempio ID
-            { nome: "02. Giulia (Canto)", id: "fJ9rUzIMcZQ" },   // Esempio ID (Queen)
-            { nome: "03. Gruppo Dance", id: "OPf0YbXqDm0" },     // Esempio ID (Uptown Funk)
-            { nome: "04. Mago Silvan", id: "M0jmSsQ5ptw" },      // Musica misteriosa
-            { nome: "05. Barzellettiere", id: "" }               // Vuoto se non serve video
-        ];
+        // --- CONFIGURAZIONE FADE ---
+        const FADE_DURATION = 2000; // Durata dissolvenza in millisecondi (2 secondi)
+        let activeIntervals = {}; // Per memorizzare gli intervalli di fade e non sovrapporli
 
-        // --- 2. GESTIONE YOUTUBE ---
-        let player;
-        let currentVideoId = "";
-        
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: '', // Parte vuoto
-                playerVars: {
-                    'playsinline': 1,
-                    'controls': 1, // Mostra controlli standard
-                    'rel': 0       // Niente video correlati alla fine
-                },
-                events: {
-                    'onReady': onPlayerReady
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            ytSetVolume(100);
-            renderPlaylist(); // Genera i bottoni solo quando il player è pronto
-        }
-
-        function loadConcorrente(index) {
-            const data = playlistConcorrenti[index];
-            currentVideoId = data.id;
-            
-            // Evidenzia bottone attivo
-            document.querySelectorAll('.btn-contestant').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-c-${index}`).classList.add('active');
-
-            if(data.id) {
-                player.loadVideoById(data.id);
-                player.stopVideo(); // Carica ma aspetta il play manuale
-            } else {
-                player.stopVideo();
-                alert("Nessun video assegnato a questo concorrente.");
-            }
-        }
-
-        function ytPlayPause() {
-            if (player.getPlayerState() == 1) { // 1 = playing
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-                // Ferma eventuale musica di sottofondo della regia
-                stopAllRegiaAudio(); 
-            }
-        }
-
-        function ytRestart() {
-            player.seekTo(0);
-            player.playVideo();
-        }
-
-        function ytSetVolume(vol) {
-            if(player) player.setVolume(vol);
-        }
-
-        // --- FUNZIONE "MONITOR STAGE" (POPUP) ---
-        function openStageWindow() {
-            if(!currentVideoId) { alert("Seleziona prima un concorrente!"); return; }
-            
-            // Apre una nuova finestra pulita con il video embeddato full page
-            const w = window.open("", "MonitorStage", "width=800,height=600");
-            w.document.write(`
-                <html><body style="margin:0;background:black;overflow:hidden;">
-                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1&controls=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                </body></html>
-            `);
-        }
-
-        // Genera la lista visiva
-        function renderPlaylist() {
-            const container = document.getElementById('contestantList');
-            container.innerHTML = "";
-            playlistConcorrenti.forEach((item, index) => {
-                const btn = document.createElement('div');
-                btn.className = 'btn-contestant';
-                btn.id = `btn-c-${index}`;
-                btn.innerHTML = `<span>${item.nome}</span> <small>▶</small>`;
-                btn.onclick = () => loadConcorrente(index);
-                container.appendChild(btn);
-            });
-        }
-
-
-        // --- 3. GESTIONE AUDIO REGIA (FADE SYSTEM) ---
-        // (Il codice audio precedente, leggermente adattato per stopparsi quando parte YT)
-        const FADE_DURATION = 2000;
-        let activeIntervals = {};
+        // --- GESTIONE AUDIO ---
         const tracks = {
             sigla: document.getElementById('track-sigla'),
             entrata: document.getElementById('track-entrata'),
             sottofondo: document.getElementById('track-sottofondo'),
             suspense: document.getElementById('track-suspense')
         };
-        const sfx = { vittoria: document.getElementById('fx-vittoria'), vai: document.getElementById('fx-vai') };
+        const sfx = {
+            vittoria: document.getElementById('fx-vittoria'),
+            vai: document.getElementById('fx-vai')
+        };
+
+        // Valori volume correnti (dal cursore)
         let currentMusicVol = 0.5;
         let currentSfxVol = 1.0;
 
+        // FUNZIONE "MAGICA" PER IL FADE
         function fadeAudio(audio, targetVol, duration, callback) {
+            // Se c'è già un fade in corso su questa traccia, cancellalo
             if (activeIntervals[audio.id]) clearInterval(activeIntervals[audio.id]);
-            const stepTime = 50; 
+
+            const stepTime = 50; // Aggiorna ogni 50ms
             const steps = duration / stepTime;
             const volStep = (targetVol - audio.volume) / steps;
             
-            if (targetVol > 0 && audio.paused) audio.play();
+            // Se stiamo alzando il volume, assicuriamoci che l'audio stia suonando
+            if (targetVol > 0 && audio.paused) {
+                audio.play();
+            }
 
             activeIntervals[audio.id] = setInterval(() => {
                 let newVol = audio.volume + volStep;
+
+                // Controlli per non sforare (clamping)
                 if (volStep > 0 && newVol >= targetVol) newVol = targetVol;
                 if (volStep < 0 && newVol <= 0) newVol = 0;
+
                 audio.volume = newVol;
+
+                // Fine del fade
                 if (newVol === targetVol) {
                     clearInterval(activeIntervals[audio.id]);
                     delete activeIntervals[audio.id];
-                    if (targetVol === 0) { audio.pause(); audio.currentTime = 0; }
+                    
+                    // Se il target era 0 (fade out), mettiamo in pausa e resettiamo
+                    if (targetVol === 0) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                    
                     if (callback) callback();
                 }
             }, stepTime);
         }
 
+        // GESTIONE PLAY/STOP CON FADE
         function toggleAudio(name) {
             const audio = tracks[name];
             const btn = document.querySelector(`button[onclick="toggleAudio('${name}')"]`);
             
-            // Ferma le altre tracce regia
+            // 1. Ferma (sfumando) tutte le altre tracce attive
             Object.keys(tracks).forEach(k => {
                 if (k !== name) {
-                    const other = tracks[k];
+                    const otherAudio = tracks[k];
                     const otherBtn = document.querySelector(`button[onclick="toggleAudio('${k}')"]`);
-                    if (!other.paused && other.volume > 0) { fadeAudio(other, 0, 1500); if(otherBtn) otherBtn.classList.remove('playing'); }
+                    
+                    if (!otherAudio.paused && otherAudio.volume > 0) {
+                        // Fade Out rapido per le altre tracce
+                        fadeAudio(otherAudio, 0, 1500); 
+                        if(otherBtn) otherBtn.classList.remove('playing');
+                    }
                 }
             });
 
-            // Se parte un audio regia, metti in pausa YouTube
-            if(player && player.getPlayerState() == 1) player.pauseVideo();
-
+            // 2. Gestisci la traccia cliccata
             if (audio.paused || audio.volume === 0) {
+                // START: Imposta volume a 0 e fai Fade In
                 audio.volume = 0;
                 fadeAudio(audio, currentMusicVol, FADE_DURATION);
                 btn.classList.add('playing');
             } else {
-                fadeAudio(audio, 0, 1500);
+                // STOP: Fai Fade Out a 0
+                fadeAudio(audio, 0, 1500, () => {
+                    // Callback opzionale a fine fade out
+                });
                 btn.classList.remove('playing');
             }
         }
 
-        function stopAllRegiaAudio() {
-            Object.keys(tracks).forEach(k => {
-                const t = tracks[k];
-                const b = document.querySelector(`button[onclick="toggleAudio('${k}')"]`);
-                if(!t.paused) { fadeAudio(t, 0, 1000); if(b) b.classList.remove('playing'); }
-            });
-        }
-
+        // GESTIONE EFFETTI SINGOLI (Jingle) - Niente fade, devono essere immediati
         function playEffect(name) {
+            // Opzionale: abbassa leggermente la musica di sottofondo mentre suona l'effetto?
+            // Per ora lo lasciamo semplice: suona sopra.
             sfx[name].volume = currentSfxVol;
             sfx[name].currentTime = 0;
             sfx[name].play();
         }
 
+        // CONTROLLO SLIDER VOLUME
         function setVolume(type, val) {
-            const num = parseFloat(val);
-            if(type === 'music') { currentMusicVol = num; Object.values(tracks).forEach(t => { if(!t.paused && !activeIntervals[t.id]) t.volume = num; }); }
-            else { currentSfxVol = num; Object.values(sfx).forEach(s => s.volume = num; }
+            const numericVal = parseFloat(val);
+            if (type === 'music') {
+                currentMusicVol = numericVal;
+                // Aggiorna volume solo delle tracce che stanno suonando (non quelle in fade out/stop)
+                Object.values(tracks).forEach(t => {
+                    if (!t.paused && t.volume > 0 && !activeIntervals[t.id]) {
+                        t.volume = currentMusicVol;
+                    }
+                });
+            } else {
+                currentSfxVol = numericVal;
+                Object.values(sfx).forEach(s => s.volume = currentSfxVol);
+            }
         }
+        
+        // Inizializza volumi
+        document.getElementById('volMusic').value = 0.5;
+        document.getElementById('volSfx').value = 1.0;
 
-        // --- SOCKET ---
+
+        // --- GESTIONE SOCKET (Monitoraggio) ---
         socket.on('aggiorna', (stato) => {
             for (let i = 1; i <= 4; i++) {
+                const slot = stato[i];
                 const el = document.getElementById(`mon${i}`);
-                if (stato[i].nome) {
-                    el.innerHTML = `${stato[i].nome} <span class="status-dot ${stato[i].scelta === 'X' ? 'on' : ''}"></span>`;
-                    el.classList.toggle('attivo', stato[i].scelta === 'X');
-                } else el.innerHTML = `Slot ${i} <span class="status-dot"></span>`;
+                
+                if (slot.nome) {
+                    el.innerHTML = `${slot.nome} <span class="status-dot"></span>`;
+                    if (slot.scelta === 'X') {
+                        el.querySelector('.status-dot').classList.add('on');
+                        el.classList.add('attivo');
+                    } else {
+                        el.querySelector('.status-dot').classList.remove('on');
+                        el.classList.remove('attivo');
+                    }
+                } else {
+                    el.innerHTML = `Slot ${i} (Vuoto) <span class="status-dot"></span>`;
+                }
             }
         });
-        socket.on('suono', (scelta) => { if(scelta==='X') { sfx.vai.volume = currentSfxVol; sfx.vai.play(); } });
-        function resetGara() { socket.emit('reset'); if(!tracks.suspense.paused) toggleAudio('suspense'); }
-        function resetTotale() { if(confirm("Reset totale?")) socket.emit('reset-giudici'); }
 
+        socket.on('suono', (scelta) => {
+            if (scelta === 'X') {
+                sfx.vai.volume = currentSfxVol;
+                sfx.vai.play();
+            }
+        });
+
+        function resetGara() {
+            socket.emit('reset');
+            // Se c'è suspense attiva, sfumala via
+            const suspenseTrack = tracks['suspense'];
+            if (!suspenseTrack.paused) {
+                toggleAudio('suspense'); // Questo attiverà il fade out automatico
+            }
+        }
+        
+        function resetTotale() {
+            if(confirm("Vuoi scollegare tutti i giudici?")) socket.emit('reset-giudici');
+        }
     </script>
 </body>
 </html>
