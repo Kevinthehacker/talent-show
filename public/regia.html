@@ -112,13 +112,18 @@
     <audio id="fx-vai" src="vai.mp3"></audio>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         
+        // --- CONFIGURAZIONE FADE ---
+        const FADE_DURATION = 2000; // Durata dissolvenza in millisecondi (2 secondi)
+        let activeIntervals = {}; // Per memorizzare gli intervalli di fade e non sovrapporli
+
         // --- GESTIONE AUDIO ---
         const tracks = {
             sigla: document.getElementById('track-sigla'),
-            entrata: document.getElementById('track-entrata'), // NUOVO RIFERIMENTO
+            entrata: document.getElementById('track-entrata'),
             sottofondo: document.getElementById('track-sottofondo'),
             suspense: document.getElementById('track-suspense')
         };
@@ -127,51 +132,112 @@
             vai: document.getElementById('fx-vai')
         };
 
-        // Gestione Play/Stop Loop (Tracce musicali)
+        // Valori volume correnti (dal cursore)
+        let currentMusicVol = 0.5;
+        let currentSfxVol = 1.0;
+
+        // FUNZIONE "MAGICA" PER IL FADE
+        function fadeAudio(audio, targetVol, duration, callback) {
+            // Se c'è già un fade in corso su questa traccia, cancellalo
+            if (activeIntervals[audio.id]) clearInterval(activeIntervals[audio.id]);
+
+            const stepTime = 50; // Aggiorna ogni 50ms
+            const steps = duration / stepTime;
+            const volStep = (targetVol - audio.volume) / steps;
+            
+            // Se stiamo alzando il volume, assicuriamoci che l'audio stia suonando
+            if (targetVol > 0 && audio.paused) {
+                audio.play();
+            }
+
+            activeIntervals[audio.id] = setInterval(() => {
+                let newVol = audio.volume + volStep;
+
+                // Controlli per non sforare (clamping)
+                if (volStep > 0 && newVol >= targetVol) newVol = targetVol;
+                if (volStep < 0 && newVol <= 0) newVol = 0;
+
+                audio.volume = newVol;
+
+                // Fine del fade
+                if (newVol === targetVol) {
+                    clearInterval(activeIntervals[audio.id]);
+                    delete activeIntervals[audio.id];
+                    
+                    // Se il target era 0 (fade out), mettiamo in pausa e resettiamo
+                    if (targetVol === 0) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                    
+                    if (callback) callback();
+                }
+            }, stepTime);
+        }
+
+        // GESTIONE PLAY/STOP CON FADE
         function toggleAudio(name) {
             const audio = tracks[name];
-            // Seleziona il bottone corretto in base all'evento onclick
             const btn = document.querySelector(`button[onclick="toggleAudio('${name}')"]`);
             
-            // Ferma tutte le altre tracce
+            // 1. Ferma (sfumando) tutte le altre tracce attive
             Object.keys(tracks).forEach(k => {
                 if (k !== name) {
-                    tracks[k].pause();
-                    tracks[k].currentTime = 0;
-                    // Rimuove la classe playing dagli altri bottoni
+                    const otherAudio = tracks[k];
                     const otherBtn = document.querySelector(`button[onclick="toggleAudio('${k}')"]`);
-                    if(otherBtn) otherBtn.classList.remove('playing');
+                    
+                    if (!otherAudio.paused && otherAudio.volume > 0) {
+                        // Fade Out rapido per le altre tracce
+                        fadeAudio(otherAudio, 0, 1500); 
+                        if(otherBtn) otherBtn.classList.remove('playing');
+                    }
                 }
             });
 
-            if (audio.paused) {
-                audio.play();
+            // 2. Gestisci la traccia cliccata
+            if (audio.paused || audio.volume === 0) {
+                // START: Imposta volume a 0 e fai Fade In
+                audio.volume = 0;
+                fadeAudio(audio, currentMusicVol, FADE_DURATION);
                 btn.classList.add('playing');
             } else {
-                audio.pause();
-                audio.currentTime = 0; // Reset all'inizio
+                // STOP: Fai Fade Out a 0
+                fadeAudio(audio, 0, 1500, () => {
+                    // Callback opzionale a fine fade out
+                });
                 btn.classList.remove('playing');
             }
         }
 
-        // Gestione Effetti Singoli (Jingle)
+        // GESTIONE EFFETTI SINGOLI (Jingle) - Niente fade, devono essere immediati
         function playEffect(name) {
+            // Opzionale: abbassa leggermente la musica di sottofondo mentre suona l'effetto?
+            // Per ora lo lasciamo semplice: suona sopra.
+            sfx[name].volume = currentSfxVol;
             sfx[name].currentTime = 0;
             sfx[name].play();
         }
 
-        // Controllo Volume Globale
+        // CONTROLLO SLIDER VOLUME
         function setVolume(type, val) {
+            const numericVal = parseFloat(val);
             if (type === 'music') {
-                Object.values(tracks).forEach(t => t.volume = val);
+                currentMusicVol = numericVal;
+                // Aggiorna volume solo delle tracce che stanno suonando (non quelle in fade out/stop)
+                Object.values(tracks).forEach(t => {
+                    if (!t.paused && t.volume > 0 && !activeIntervals[t.id]) {
+                        t.volume = currentMusicVol;
+                    }
+                });
             } else {
-                Object.values(sfx).forEach(s => s.volume = val);
+                currentSfxVol = numericVal;
+                Object.values(sfx).forEach(s => s.volume = currentSfxVol);
             }
         }
         
         // Inizializza volumi
-        setVolume('music', 0.5);
-        setVolume('sfx', 1.0);
+        document.getElementById('volMusic').value = 0.5;
+        document.getElementById('volSfx').value = 1.0;
 
 
         // --- GESTIONE SOCKET (Monitoraggio) ---
@@ -179,7 +245,6 @@
             for (let i = 1; i <= 4; i++) {
                 const slot = stato[i];
                 const el = document.getElementById(`mon${i}`);
-                const dot = el.querySelector('.status-dot');
                 
                 if (slot.nome) {
                     el.innerHTML = `${slot.nome} <span class="status-dot"></span>`;
@@ -197,13 +262,19 @@
         });
 
         socket.on('suono', (scelta) => {
-            if (scelta === 'X') sfx.vai.play();
+            if (scelta === 'X') {
+                sfx.vai.volume = currentSfxVol;
+                sfx.vai.play();
+            }
         });
 
         function resetGara() {
             socket.emit('reset');
-            // Opzionale: Ferma la suspense se attiva
-             if (!tracks.suspense.paused) toggleAudio('suspense');
+            // Se c'è suspense attiva, sfumala via
+            const suspenseTrack = tracks['suspense'];
+            if (!suspenseTrack.paused) {
+                toggleAudio('suspense'); // Questo attiverà il fade out automatico
+            }
         }
         
         function resetTotale() {
