@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tombola Tech - Tabellone Manuale 🎄</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d32f2f; /* Rosso Natale Scuro */
+            --secondary: #ffb300; /* Oro Caldo */
+            --xmas-green: #2e7d32; /* Verde Abete */
+            --glass: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #0f2027 0%, #203a43 50%, #1a1a2e 100%);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- DECORAZIONI SFONDO --- */
+        .bokeh-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -3; opacity: 0.6;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(211, 47, 47, 0.5) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(46, 125, 50, 0.5) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 179, 0, 0.3) 0%, transparent 50%);
+            filter: blur(80px);
+        }
+
+        .bg-decor-icon {
+            position: fixed; z-index: -2; opacity: 0.15; pointer-events: none; fill: currentColor;
+        }
+        .decor-tree { bottom: -50px; left: -80px; width: 500px; height: auto; color: var(--xmas-green); transform: rotate(-5deg); }
+        .decor-star { top: -80px; right: -80px; width: 400px; height: auto; color: var(--secondary); transform: rotate(15deg); }
+
+        .snowflake {
+            position: absolute; top: -10px; color: #fff; animation: fall linear forwards; z-index: -1;
+        }
+        @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
+
+        /* --- LAYOUT --- */
+        header { text-align: center; padding: 20px; z-index: 10; margin-bottom: 10px; }
+        h1 {
+            font-family: 'Fredoka One', cursive; font-size: 4rem; margin: 0;
+            color: var(--secondary); text-shadow: 0 0 25px rgba(255, 179, 0, 0.8);
+            letter-spacing: 2px; position: relative;
+        }
+        h1::after { content: '🎄'; font-size: 2.5rem; position: absolute; top: -20px; right: -30px; transform: rotate(20deg); }
+
+        .main-container {
+            display: flex; flex-wrap: wrap; gap: 30px; width: 95%; max-width: 1600px;
+            justify-content: center; margin-bottom: 40px; z-index: 1;
+        }
+
+        /* --- SINISTRA: DISPLAY STATUS --- */
+        .status-zone {
+            flex: 1; min-width: 320px;
+            background: var(--glass); backdrop-filter: blur(20px) saturate(120%);
+            border-radius: 30px; border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow); padding: 35px;
+            text-align: center; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .big-number-display {
+            width: 240px; height: 240px;
+            background: radial-gradient(circle at 30% 30%, #e53935, #b71c1c);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 10rem; font-family: 'Fredoka One', cursive; margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(211, 47, 47, 0.5), inset 0 5px 10px rgba(255,255,255,0.2);
+            border: 8px solid var(--secondary); position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .big-number-display::before { content: '🎅'; font-size: 4rem; position: absolute; top: -35px; left: -20px; transform: rotate(-20deg); z-index: 2; }
+        
+        .big-number-display.pop { animation: popScale 0.4s ease; }
+
+        @keyframes popScale { 0% { transform: scale(0.8); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .smorfia-text {
+            margin-top: 15px; font-size: 2.2rem; color: var(--secondary);
+            font-weight: 700; min-height: 1.2em; text-shadow: 0 2px 4px rgba(0,0,0,0.8); line-height: 1.1;
+        }
+
+        .audio-settings {
+            margin-top: 25px; background: rgba(0,0,0,0.4); padding: 12px;
+            border-radius: 15px; width: 100%; box-sizing: border-box;
+        }
+        select {
+            background: rgba(255,255,255,0.95); border: 2px solid var(--secondary);
+            padding: 10px; border-radius: 10px; font-family: 'Poppins', sans-serif;
+            width: 100%; font-weight: 600; cursor: pointer;
+        }
+
+        .controls { margin-top: 20px; }
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.1); color: rgba(255,255,255,0.8);
+            border: 2px solid rgba(255,255,255,0.2); font-size: 0.9rem; padding: 12px 24px;
+            border-radius: 50px; cursor: pointer; font-weight: bold; text-transform: uppercase;
+        }
+        .btn-reset:hover { background: rgba(255, 255, 255, 0.2); color: white; }
+
+        /* --- DESTRA: TABELLONE INTERATTIVO --- */
+        .board-zone {
+            flex: 2; min-width: 350px;
+            background: var(--glass); backdrop-filter: blur(20px) saturate(120%);
+            border-radius: 30px; border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow); padding: 30px;
+        }
+
+        .instruction-text {
+            text-align: center; color: #aaa; margin-bottom: 15px; font-style: italic;
+        }
+
+        .board-grid {
+            display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px;
+        }
+
+        .board-number {
+            aspect-ratio: 1; background: rgba(0, 0, 0, 0.35); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; font-weight: 700; color: rgba(255, 255, 255, 0.4);
+            transition: all 0.2s ease; position: relative; border: 1px solid transparent;
+            cursor: pointer; /* Fondamentale per far capire che è cliccabile */
+        }
+
+        .board-number:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .board-number.active {
+            background: linear-gradient(135deg, var(--primary), #b71c1c);
+            color: white; box-shadow: 0 0 20px var(--primary);
+            transform: scale(1.15); border: 2px solid var(--secondary);
+            font-size: 1.6rem; z-index: 5; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        
+        .last-calls {
+            margin-top: 10px; display: flex; gap: 10px; justify-content: center; min-height: 55px;
+        }
+        .last-call-ball {
+            width: 50px; height: 50px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; border: 2px solid rgba(255,255,255,0.3); font-size: 1.1rem;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        @media (max-width: 900px) {
+            .board-grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+            .big-number-display { width: 180px; height: 180px; font-size: 6rem; }
+            h1 { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bokeh-bg"></div>
+    <svg class="bg-decor-icon decor-tree" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2L2,22H22L12,2M12,6L15.5,13H8.5L12,6M12,15.5L14.5,20H9.5L12,15.5Z"/></svg>
+    <svg class="bg-decor-icon decor-star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg>
+
+    <header>
+        <h1>TOMBOLATA NATALE IN ORATORIO</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="status-zone">
+            <div id="display" class="big-number-display">-</div>
+            <div id="smorfia" class="smorfia-text">Attesa numero...</div>
+            
+            <div class="audio-settings">
+                <label style="font-size: 0.8rem; color: #ddd; margin-bottom: 5px; display: block;">🔊 Voce Presentatore (Seleziona per attivare):</label>
+                <select id="voiceSelect" onchange="testVoice()">
+                    <option value="">Caricamento voci...</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 30px; width: 100%;">
+                <div style="font-size: 0.9rem; color: #ccc; text-transform: uppercase; letter-spacing: 1px;">Ultimi Chiamati</div>
+                <div id="history" class="last-calls"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-reset" onclick="confirmReset()">AZZERA TUTTO</button>
+            </div>
+        </div>
+
+        <div class="board-zone">
+            <div class="instruction-text">Clicca su un numero per segnarlo e chiamarlo ad alta voce</div>
+            <div id="board" class="board-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        const totalNumbers = 90;
+        let voices = [];
+        
+        // SMORFIA COMPLETA
+        const smorfia = {
+            1: "L'Italia", 2: "La bambina", 3: "La gatta", 4: "Il maialino", 5: "La mano",
+            6: "Quella che guarda in terra", 7: "Il vaso", 8: "La Madonna", 9: "Alfonso Signorini", 10: "I fagioli",
+            11: "I topolini", 12: "Il soldato", 13: "Sant'Antonio", 14: "L'ubriaco", 15: "Il ragazzo",
+            16: "Il sedere", 17: "La disgrazia", 18: "Il sangue", 19: "La risata", 20: "La festa",
+            21: "La donna nuda", 22: "I pazzi", 23: "Lo scemo", 24: "Le guardie", 25: "Natale",
+            26: "Anna Marti", 27: "Alessia Ligori", 28: "I seni", 29: "Il padre dei bimbi", 30: "Le palle del tenente",
+            31: "Il padrone di casa", 32: "Scemo chi legge", 33: "Gli anni di Cristo", 34: "La testa", 35: "L'uccellino",
+            36: "Le nacchere", 37: "Il monaco", 38: "Le bastonate", 39: "La corda al collo", 40: "Alessia Meleleo",
+            41: "Il coltello", 42: "Il caffè", 43: "La donna al balcone", 44: "Le carceri", 45: "Il buon vino",
+            46: "I soldi", 47: "Il morto", 48: "Il morto che parla", 49: "La carne", 50: "Il pane",
+            51: "Il giardino", 52: "Mammata", 53: "Il vecchio", 54: "Il cappello", 55: "La musica",
+            56: "Annamaria Russo", 57: "Il gobbo", 58: "Il pacco", 59: "I peli", 60: "Il lamento",
+            61: "Il cacciatore", 62: "Il morto ammazzato", 63: "La sposa", 64: "La marsina", 65: "Il pianto",
+            66: "Le due zitelle", 67: "Il totano nella chitarra", 68: "La zuppa cotta", 69: "Eh sapessi...", 70: "Il palazzo",
+            71: "L'uomo di merda", 72: "Lo stupore", 73: "L'ospedale", 74: "La grotta", 75: "Pulcinella",
+            76: "La fontana", 77: "Le gambe delle donne", 78: "La bella figliola", 79: "Il ladro", 80: "La bocca",
+            81: "I fiori", 82: "La tavola imbandita", 83: "Il maltempo", 84: "La chiesa", 85: "L'anima del Purgatorio",
+            86: "La bottega", 87: "I pidocchi", 88: "I caciocavalli", 89: "La vecchia", 90: "La paura"
+        };
+
+        window.onload = function() {
+            createBoard();
+            createSnow();
+            setTimeout(populateVoiceList, 500);
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = populateVoiceList;
+            }
+        };
+
+        function populateVoiceList() {
+            voices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById("voiceSelect");
+            voiceSelect.innerHTML = '';
+            const itVoices = voices.filter(v => v.lang.includes('it'));
+            if(itVoices.length === 0) {
+                let opt = document.createElement('option'); opt.textContent = "Nessuna voce italiana trovata"; voiceSelect.appendChild(opt); return;
+            }
+            itVoices.forEach((voice) => {
+                const option = document.createElement('option');
+                let cleanName = voice.name.replace('Microsoft', '').replace('Google', '').replace('Desktop', '').trim();
+                option.textContent = cleanName;
+                option.setAttribute('data-name', voice.name);
+                voiceSelect.appendChild(option);
+                if (voice.name.includes("Online") || voice.name.includes("Natural") || voice.name.includes("Google")) {
+                    option.selected = true;
+                }
+            });
+        }
+
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            for (let i = 1; i <= totalNumbers; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'board-number';
+                cell.id = `num-${i}`;
+                cell.textContent = i;
+                // Aggiunta evento click
+                cell.onclick = () => toggleNumber(i);
+                board.appendChild(cell);
+            }
+        }
+
+        function toggleNumber(number) {
+            const cell = document.getElementById(`num-${number}`);
+            
+            // Se è già attivo, lo spegniamo (modalità correzione errore)
+            if (cell.classList.contains('active')) {
+                cell.classList.remove('active');
+                // Nota: Non rimuoviamo dallo storico per semplicità, o si potrebbe fare se necessario.
+                return;
+            }
+
+            // Se non è attivo, lo accendiamo e chiamiamo il numero
+            cell.classList.add('active');
+            
+            // Aggiorna Display Grande
+            const display = document.getElementById('display');
+            display.textContent = number;
+            
+            // Animazione "Pop"
+            display.classList.remove('pop');
+            void display.offsetWidth; // Trigger reflow
+            display.classList.add('pop');
+            
+            // Smorfia
+            const text = smorfia[number] || "";
+            document.getElementById('smorfia').textContent = text;
+
+            // Storico
+            updateHistory(number);
+
+            // Voce
+            speak(`${number}. ... ${text}`);
+        }
+
+        function updateHistory(num) {
+            const historyContainer = document.getElementById('history');
+            const ball = document.createElement('div');
+            ball.className = 'last-call-ball';
+            ball.textContent = num;
+            historyContainer.prepend(ball);
+            if (historyContainer.children.length > 6) historyContainer.removeChild(historyContainer.lastChild);
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance();
+                msg.text = text;
+                msg.rate = 0.9; 
+                msg.pitch = 1.0; 
+                msg.volume = 1;
+
+                const voiceSelect = document.getElementById("voiceSelect");
+                if (voiceSelect.selectedOptions.length > 0) {
+                     const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+                     const selectedVoice = voices.find(v => v.name === selectedOption);
+                     if (selectedVoice) msg.voice = selectedVoice;
+                }
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        function testVoice() { speak("Volume ok. Buon Natale!"); }
+
+        function confirmReset() {
+            if(confirm("Vuoi cancellare tutto il tabellone?")) {
+                location.reload();
+            }
+        }
+
+        function createSnow() {
+            setInterval(() => {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = Math.random() > 0.5 ? '❄' : '❅';
+                snowflake.style.left = Math.random() * 100 + 'vw';
+                let size = Math.random() * 25 + 10;
+                snowflake.style.fontSize = size + 'px';
+                snowflake.style.animationDuration = (150 / size) + Math.random() * 2 + 's';
+                snowflake.style.opacity = Math.random() * 0.6 + 0.2;
+                document.body.appendChild(snowflake);
+                setTimeout(() => snowflake.remove(), 8000);
+            }, 200);
+        }
+    </script>
+</body>
+</html>
