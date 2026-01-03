@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - ULTIMATE</title>
+    <title>Regia OGT - ULTIMATE TURBO</title>
     <style>
         :root { 
             --dark: #121212; 
@@ -72,12 +72,12 @@
         .btn-concorrente.active { background: #333; color: var(--accent); border-left: 3px solid var(--accent); font-weight: bold; }
 
         /* --- DESTRA: AUDIO --- */
-        /* Modificato a 5 colonne per far entrare Alessandro */
         .audio-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 5px; }
         
+        /* Rimossa transition opacity lenta per i bottoni */
         .btn-sound { 
             border: none; padding: 10px 2px; font-size: 0.65rem; font-weight: bold; color: white; 
-            border-radius: 5px; cursor: pointer; position: relative; overflow: hidden; transition: opacity 0.2s;
+            border-radius: 5px; cursor: pointer; position: relative; overflow: hidden; 
         }
         .btn-sound.playing { box-shadow: inset 0 0 0 2px white; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
@@ -91,9 +91,9 @@
         .sfx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
         .btn-sfx {
             background: #37474f; color: #eceff1; border: 1px solid #546e7a;
-            padding: 8px 2px; font-size: 0.7rem; border-radius: 5px; cursor: pointer; transition: background 0.1s;
+            padding: 8px 2px; font-size: 0.7rem; border-radius: 5px; cursor: pointer;
         }
-        .btn-sfx:active { transform: scale(0.95); }
+        .btn-sfx:active { transform: scale(0.95); background: #546e7a; }
         .btn-sfx.playing { box-shadow: inset 0 0 0 2px var(--accent); background: #455a64; color: var(--accent); }
         .key-hint { display: block; font-size: 0.6em; opacity: 0.6; margin-bottom: 2px; }
 
@@ -222,17 +222,17 @@
         </div>
     </div>
 
-    <audio id="track-sigla" src="sigla.mp3" loop></audio>
-    <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
-    <audio id="track-suspense" src="suspense.mp3" loop></audio>
-    <audio id="track-vittoria" src="vittoria.mp3"></audio> 
-    <audio id="track-alessandro" src="alessandro.mp3" loop></audio>
+    <audio id="track-sigla" src="sigla.mp3" loop preload="auto"></audio>
+    <audio id="track-sottofondo" src="sottofondo.mp3" loop preload="auto"></audio>
+    <audio id="track-suspense" src="suspense.mp3" loop preload="auto"></audio>
+    <audio id="track-vittoria" src="vittoria.mp3" preload="auto"></audio> 
+    <audio id="track-alessandro" src="alessandro.mp3" loop preload="auto"></audio>
     
-    <audio id="fx-vai" src="vai.mp3"></audio>
-    <audio id="sfx-applausi" src="applausi.mp3"></audio>
-    <audio id="sfx-buu" src="buu.mp3"></audio>
-    <audio id="sfx-rullo" src="rullo.mp3"></audio>
-    <audio id="sfx-grillo" src="grillo.mp3"></audio>
+    <audio id="fx-vai" src="vai.mp3" preload="auto"></audio>
+    <audio id="sfx-applausi" src="applausi.mp3" preload="auto"></audio>
+    <audio id="sfx-buu" src="buu.mp3" preload="auto"></audio>
+    <audio id="sfx-rullo" src="rullo.mp3" preload="auto"></audio>
+    <audio id="sfx-grillo" src="grillo.mp3" preload="auto"></audio>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -240,22 +240,20 @@
     <script>
         // --- 1. CONFIGURAZIONE PLAYLIST ---
         const playlist = [
-            { nome: "1. A Natale Puoi", id: "IIIGrh2IW70" },
-            { nome: "2. Piccoli aiutanti di BN", id: "yogiJpFmuAA" }, 
-            { nome: "3. Tunak Tunak Star Trek",  id: "_NthoWFFZOU" },
-            { nome: "4. Chiara gemma",           id: "dSWhxDeMJaA" },
-            { nome: "5. Le pizzicate",           id: "HkojXZkXATw" },
-            { nome: "6. Sofia Barba",            id: "fQ7Bt10jUfM" },
-            { nome: "7. Giacomo Stursi",         id: "3qTDEpO7k8s" },
-            { nome: "8. The Little Mix",         id: "1mAwbK9IN0g" },
-            { nome: "9. Alessandro e animatori", id: "TJCXKII26rg" },
-            { nome: "10. Antonio Botrugno",      id: "GCR5ujxheQg" },
-            { nome: "11. Summer Girls 2010",      id: "czWcyZRAMtk" },
-            { nome: "12. Emily Tudisco",         id: "YQsjQiq2-VM" },
-            { nome: "13. Francesco Vantaggiato", id: "" },
-            { nome: "14. Stecchini Duo",         id: "wOxgZCoXRiQ" },
-            { nome: "15. Judo Giuri",         id: "hKRUPYrAQoE" },
-            { nome: "16. Anna Marti",            id: "Kwx-3ihxiCQ" }
+            { nome: "1. Piccoli aiutanti di BN", id: "yogiJpFmuAA" }, 
+            { nome: "2. Tunak Tunak Star Trek",  id: "_NthoWFFZOU" },
+            { nome: "3. Chiara gemma",           id: "dSWhxDeMJaA" },
+            { nome: "4. Le pizzicate",           id: "HkojXZkXATw" },
+            { nome: "5. Sofia Barba",            id: "fQ7Bt10jUfM" },
+            { nome: "6. Giacomo Stursi",         id: "3qTDEpO7k8s" },
+            { nome: "7. The Little Mix",         id: "1mAwbK9IN0g" },
+            { nome: "8. Alessandro e animatori", id: "TJCXKII26rg" },
+            { nome: "9. Summer Girls 2010",      id: "czWcyZRAMtk" },
+            { nome: "10. Emily Tudisco",         id: "YQsjQiq2-VM" },
+            { nome: "11. Francesco Vantaggiato", id: "" },
+            { nome: "12. Antonio Botrugno",      id: "GCR5ujxheQg" },
+            { nome: "13. Stecchini Duo",         id: "wOxgZCoXRiQ" },
+            { nome: "14. Anna Marti",            id: "Kwx-3ihxiCQ" }
         ];
 
         // --- 2. GENERAZIONE LISTA ---
@@ -275,7 +273,7 @@
             sottofondo: document.getElementById('track-sottofondo'),
             suspense: document.getElementById('track-suspense'),
             vittoria: document.getElementById('track-vittoria'),
-            alessandro: document.getElementById('track-alessandro') // Aggiunto qui
+            alessandro: document.getElementById('track-alessandro')
         };
         const sfxVai = document.getElementById('fx-vai');
         const instantSfx = {
@@ -290,7 +288,6 @@
         let isTalkoverActive = false;
         let fadeIntervals = {}; 
 
-        // Rimuovi classe playing quando SFX finisce
         Object.keys(instantSfx).forEach(name => {
             instantSfx[name].addEventListener('ended', () => {
                 const btn = document.getElementById(`btn-${name}`);
@@ -298,24 +295,35 @@
             });
         });
 
+        // FUNZIONE FADE MIGLIORATA
         function fadeAudio(audio, targetVol, duration, callback) {
             const audioId = audio.id;
             if (fadeIntervals[audioId]) clearInterval(fadeIntervals[audioId]);
-            if (targetVol > 0 && audio.paused) { audio.volume = 0; audio.play(); }
             
-            const stepTime = 50; 
+            // SE E' UN FADE IN (Start): Parte SUBITO
+            if (targetVol > 0 && audio.paused) { 
+                audio.volume = 0; 
+                audio.play(); 
+            }
+            
+            const stepTime = 15; // Aggiornamento frequente (15ms)
             const steps = duration / stepTime;
             const volStep = (targetVol - audio.volume) / steps;
 
             fadeIntervals[audioId] = setInterval(() => {
                 let newVol = audio.volume + volStep;
+                
+                // Fine fade
                 if ((volStep > 0 && newVol >= targetVol) || (volStep < 0 && newVol <= targetVol)) {
                     audio.volume = targetVol;
                     clearInterval(fadeIntervals[audioId]);
                     delete fadeIntervals[audioId];
+                    // Se volume zero, pausa
                     if (targetVol <= 0.01) { audio.pause(); audio.currentTime = 0; audio.volume = 0; }
                     if (callback) callback();
-                } else { audio.volume = newVol; }
+                } else { 
+                    audio.volume = newVol; 
+                }
             }, stepTime);
         }
 
@@ -326,11 +334,13 @@
             const isPlaying = !audio.paused && audio.volume > 0;
 
             if (isPlaying) {
+                // STOP: Fade Out dolce (1 secondo)
                 fadeAudio(audio, 0, 1000, () => { if(btn) btn.classList.remove('playing'); });
             } else {
+                // START: Fade In RAPIDO (100ms) -> Sembra istantaneo
                 Object.keys(tracks).forEach(key => {
                     if (key !== name && !tracks[key].paused) {
-                        fadeAudio(tracks[key], 0, 1000);
+                        fadeAudio(tracks[key], 0, 1000); // Gli altri escono lenti
                         const other = document.getElementById(`btn-${key}`);
                         if(other) other.classList.remove('playing');
                     }
@@ -338,7 +348,7 @@
                 if(player && typeof player.pauseVideo === 'function') player.pauseVideo();
                 
                 let targetV = isTalkoverActive ? musicVolume * 0.2 : musicVolume;
-                fadeAudio(audio, targetV, 1000);
+                fadeAudio(audio, targetV, 100); // 100ms = Turbo Start
                 if(btn) btn.classList.add('playing');
             }
         }
@@ -350,9 +360,10 @@
             const isPlaying = !audio.paused && audio.volume > 0;
 
             if (isPlaying) {
-                fadeAudio(audio, 0, 500, () => { if(btn) btn.classList.remove('playing'); });
+                fadeAudio(audio, 0, 300, () => { if(btn) btn.classList.remove('playing'); });
             } else {
-                fadeAudio(audio, sfxVolume, 500);
+                // SFX Start: 50ms (Immediato)
+                fadeAudio(audio, sfxVolume, 50); 
                 if(btn) btn.classList.add('playing');
             }
         }
@@ -372,12 +383,10 @@
 
         function panicMode() {
             if(player && typeof player.stopVideo === 'function') player.stopVideo();
-            
             const allAudio = {...tracks, ...instantSfx, vai: sfxVai};
             Object.keys(allAudio).forEach(k => {
                 const audio = allAudio[k];
-                audio.pause();
-                audio.currentTime = 0;
+                audio.pause(); audio.currentTime = 0;
                 const btn = document.getElementById(`btn-${k}`);
                 if(btn) btn.classList.remove('playing');
             });
@@ -421,9 +430,7 @@
         // --- TASTIERA ---
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-            
             const key = e.key.toLowerCase();
-            
             if (e.code === 'Space') { e.preventDefault(); panicMode(); return; }
             if (e.code === 'Escape') { panicMode(); return; }
             if (key === 't' && !e.repeat) setTalkover(true);
@@ -437,13 +444,11 @@
                 case 'w': toggleMusic('sottofondo'); break;
                 case 'e': toggleMusic('suspense'); break;
                 case 'r': toggleMusic('vittoria'); break;
-                case 'a': toggleMusic('alessandro'); break; // NUOVO TASTO
+                case 'a': toggleMusic('alessandro'); break;
             }
         });
 
-        document.addEventListener('keyup', (e) => {
-             if (e.key.toLowerCase() === 't') setTalkover(false);
-        });
+        document.addEventListener('keyup', (e) => { if (e.key.toLowerCase() === 't') setTalkover(false); });
 
         // --- YOUTUBE ---
         let player;
@@ -476,17 +481,8 @@
         const socket = io();
         const connStatus = document.getElementById('connStatus');
 
-        socket.on('connect', () => {
-            connStatus.classList.remove('disconnected');
-            connStatus.classList.add('connected');
-            connStatus.title = "Server Connesso";
-        });
-
-        socket.on('disconnect', () => {
-            connStatus.classList.remove('connected');
-            connStatus.classList.add('disconnected');
-            connStatus.title = "DISCONNESSO!";
-        });
+        socket.on('connect', () => { connStatus.classList.remove('disconnected'); connStatus.classList.add('connected'); });
+        socket.on('disconnect', () => { connStatus.classList.remove('connected'); connStatus.classList.add('disconnected'); });
 
         socket.on('aggiorna', (stato) => {
             for (let i = 1; i <= 4; i++) {
@@ -502,11 +498,7 @@
         });
         socket.on('suono', (scelta) => { if (scelta === 'X') { sfxVai.currentTime = 0; sfxVai.volume = sfxVolume; sfxVai.play(); } });
         
-        function resetGara() { 
-            socket.emit('reset'); 
-            timerReset(); 
-            if(!tracks.suspense.paused) toggleMusic('suspense'); 
-        }
+        function resetGara() { socket.emit('reset'); timerReset(); if(!tracks.suspense.paused) toggleMusic('suspense'); }
         function resetTotale() { if(confirm("Scollegare tutti?")) socket.emit('reset-giudici'); }
 
     </script>
