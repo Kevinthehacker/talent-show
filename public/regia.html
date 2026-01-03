@@ -2,284 +2,511 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia - Oratorio's Got Talent</title>
+    <title>Regia OGT - ULTIMATE</title>
     <style>
-        :root { --dark: #1a1a1a; --panel: #2d2d2d; --accent: #ffd700; --red: #e53935; --green: #43a047; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 100vh; margin: 0; box-sizing: border-box; }
+        :root { 
+            --dark: #121212; 
+            --panel: #1e1e1e; 
+            --accent: #ffd700; 
+            --red: #d32f2f; 
+            --green: #388e3c;
+            --blue: #1976d2;
+            --purple: #7b1fa2;
+            --orange: #f57c00;
+            --teal: #009688;
+            --text-gray: #b0b0b0;
+        }
         
-        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
-        
-        /* Pannelli */
-        .panel { background: var(--panel); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        
-        /* Monitor Giudici (Miniatura) */
-        .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .mini-slot { background: #000; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #444; }
-        .mini-slot.attivo { background: #500; border-color: var(--red); }
-        .status-dot { height: 15px; width: 15px; background: #333; border-radius: 50%; display: inline-block; margin-left: 10px; }
-        .status-dot.on { background: var(--red); box-shadow: 0 0 10px var(--red); }
+        body { 
+            background: var(--dark); 
+            color: white; 
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
+            margin: 0; 
+            padding: 10px;
+            box-sizing: border-box; 
+            height: 100vh; 
+            overflow: hidden; 
+            user-select: none; 
+        }
 
-        /* Audio Console */
-        .audio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .btn-sound { border: none; padding: 20px; font-size: 1.2em; font-weight: bold; color: white; border-radius: 10px; cursor: pointer; transition: transform 0.1s; position: relative; overflow: hidden; }
-        .btn-sound:active { transform: scale(0.95); }
+        /* Layout Grid */
+        .main-grid { display: grid; grid-template-columns: 340px 1fr; gap: 10px; height: 100%; }
+        .colonna { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+        .panel { background: var(--panel); padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #333; }
         
-        /* Colori Bottoni */
-        .bg-blue { background: #1976d2; }   /* Sigla */
-        .bg-cyan { background: #00acc1; }   /* Entrata (NUOVO) */
-        .bg-purple { background: #7b1fa2; } /* Sottofondo */
-        .bg-orange { background: #f57c00; } /* Suspense */
-        .bg-green { background: var(--green); } /* Vittoria */
-        .bg-red { background: var(--red); }     /* Reset */
+        h2 { 
+            border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 0; margin-bottom: 8px;
+            font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .connection-status { width: 10px; height: 10px; border-radius: 50%; background: #444; display: inline-block; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .connection-status.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .connection-status.disconnected { background: var(--red); box-shadow: 0 0 8px var(--red); animation: blinkRed 1s infinite; }
+        @keyframes blinkRed { 50% { opacity: 0.3; } }
 
-        /* Fader Volume */
-        .fader-group { margin-top: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
-        input[type=range] { width: 60%; cursor: pointer; }
+        h3 { font-size: 0.75rem; color: #888; margin: 8px 0 4px 0; text-transform: uppercase; }
+
+        /* --- SINISTRA --- */
+        .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
+        .mini-slot { background: #000; padding: 5px; border-radius: 4px; text-align: center; border: 1px solid #333; font-size: 0.8rem; color: #666; transition: 0.3s; }
+        .mini-slot.attivo { background: #3c0b0b; border-color: var(--red); color: white; font-weight: bold; }
         
-        /* Indicatore riproduzione */
-        .playing-indicator { position: absolute; top: 5px; right: 5px; font-size: 0.8em; opacity: 0; }
-        .playing .playing-indicator { opacity: 1; animation: blink 1s infinite; }
+        .timer-box { background: black; border: 1px solid #444; border-radius: 6px; padding: 5px 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .timer-display { font-family: 'Courier New', monospace; font-size: 1.5rem; color: var(--accent); font-weight: bold; }
+        .timer-controls button { background: #333; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8rem; margin-left: 2px; }
+        .timer-controls button:hover { background: #555; }
+
+        .btn-reset-gara { width: 100%; padding: 8px; background: var(--red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .btn-reset-gara:hover { background: #b71c1c; }
+        .btn-reset-totale { width: 100%; margin-top: 5px; padding: 4px; background: #333; color: #888; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+
+        .panel-playlist { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
+        .playlist-container { flex-grow: 1; overflow-y: auto; padding-right: 5px; scrollbar-width: thin; scrollbar-color: #444 #1e1e1e; }
+        .btn-concorrente {
+            width: 100%; text-align: left; padding: 8px 10px; margin-bottom: 3px;
+            background: #2a2a2a; color: #ccc; border: none; border-left: 3px solid transparent;
+            border-radius: 4px; cursor: pointer; transition: all 0.1s ease; font-size: 0.85rem; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-concorrente:hover { background: #333; color: white; padding-left: 12px; }
+        .btn-concorrente.active { background: #333; color: var(--accent); border-left: 3px solid var(--accent); font-weight: bold; }
+
+        /* --- DESTRA: AUDIO --- */
+        /* Modificato a 5 colonne per far entrare Alessandro */
+        .audio-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 5px; }
         
-        @keyframes blink { 50% { opacity: 0.3; } }
+        .btn-sound { 
+            border: none; padding: 10px 2px; font-size: 0.65rem; font-weight: bold; color: white; 
+            border-radius: 5px; cursor: pointer; position: relative; overflow: hidden; transition: opacity 0.2s;
+        }
+        .btn-sound.playing { box-shadow: inset 0 0 0 2px white; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        
+        .bg-blue { background: var(--blue); } 
+        .bg-purple { background: var(--purple); } 
+        .bg-orange { background: var(--orange); } 
+        .bg-green { background: var(--green); }
+        .bg-teal { background: var(--teal); }
+
+        .sfx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+        .btn-sfx {
+            background: #37474f; color: #eceff1; border: 1px solid #546e7a;
+            padding: 8px 2px; font-size: 0.7rem; border-radius: 5px; cursor: pointer; transition: background 0.1s;
+        }
+        .btn-sfx:active { transform: scale(0.95); }
+        .btn-sfx.playing { box-shadow: inset 0 0 0 2px var(--accent); background: #455a64; color: var(--accent); }
+        .key-hint { display: block; font-size: 0.6em; opacity: 0.6; margin-bottom: 2px; }
+
+        /* PRO CONTROLS */
+        .pro-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .btn-talkover {
+            background: #ff9800; color: black; font-weight: bold; border: none; border-radius: 5px;
+            cursor: pointer; transition: 0.1s; text-transform: uppercase; font-size: 0.8rem;
+        }
+        .btn-talkover:active, .btn-talkover.active { background: var(--accent); transform: scale(0.98); box-shadow: 0 0 10px var(--accent); }
+        .btn-panic {
+            background: #b71c1c; color: white; font-weight: bold; border: 1px solid #ff0000; border-radius: 5px;
+            cursor: pointer; transition: 0.1s; text-transform: uppercase; font-size: 0.8rem;
+        }
+        .btn-panic:active { background: red; box-shadow: 0 0 15px red; }
+
+        /* MIXER */
+        .mixer-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px;
+        }
+        .volume-group { display: flex; flex-direction: column; gap: 3px; }
+        .volume-label { font-size: 0.65rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); margin: 0; height: 5px; }
+        input#volSfx { accent-color: #009688; }
+
+        /* PLAYER & MEMO */
+        .right-bottom-container { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+        .panel-player { flex: 2; display: flex; flex-direction: column; min-height: 0; padding-bottom: 5px; }
+        .video-wrapper { flex-grow: 1; width: 100%; background: black; border-radius: 6px; overflow: hidden; border: 1px solid #444; position: relative; }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        .panel-memo { flex: 1; display: flex; flex-direction: column; min-height: 100px; }
+        textarea#memo-pad { width: 100%; height: 100%; background: #111; border: 1px solid #333; color: #ddd; resize: none; font-family: 'Consolas', monospace; padding: 8px; border-radius: 6px; box-sizing: border-box; font-size: 0.85rem; }
+        textarea#memo-pad:focus { outline: 1px solid var(--accent); }
+
     </style>
 </head>
 <body>
 
-    <div class="panel">
-        <h2>👁️ Monitor Live</h2>
-        <div class="monitor-grid" id="monitor">
-            <div class="mini-slot" id="mon1">Slot 1 <span class="status-dot"></span></div>
-            <div class="mini-slot" id="mon2">Slot 2 <span class="status-dot"></span></div>
-            <div class="mini-slot" id="mon3">Slot 3 <span class="status-dot"></span></div>
-            <div class="mini-slot" id="mon4">Slot 4 <span class="status-dot"></span></div>
+    <div class="main-grid">
+        <div class="colonna">
+            <div class="panel">
+                <h2>
+                    👁️ Monitor Live 
+                    <div id="connStatus" class="connection-status disconnected" title="Stato Server"></div>
+                </h2>
+                
+                <div class="timer-box">
+                    <div class="timer-display" id="timer">00:00</div>
+                    <div class="timer-controls">
+                        <button onclick="timerStart()">▶</button>
+                        <button onclick="timerStop()">⏸</button>
+                        <button onclick="timerReset()">↺</button>
+                    </div>
+                </div>
+
+                <div class="monitor-grid" id="monitor">
+                    <div class="mini-slot" id="mon1">1</div>
+                    <div class="mini-slot" id="mon2">2</div>
+                    <div class="mini-slot" id="mon3">3</div>
+                    <div class="mini-slot" id="mon4">4</div>
+                </div>
+                <button onclick="resetGara()" class="btn-reset-gara">🔄 RESET VOTI (X)</button>
+                <button onclick="resetTotale()" class="btn-reset-totale">⚠️ Scollega Giudici</button>
+            </div>
+
+            <div class="panel panel-playlist">
+                <h2>🎤 Scaletta</h2>
+                <div class="playlist-container" id="lista-bottoni"></div>
+            </div>
         </div>
 
-        <div style="margin-top: 30px;">
-            <h2>⚙️ Gestione</h2>
-            <button onclick="resetGara()" class="btn-sound bg-red" style="width:100%">🔄 NUOVO CONCORRENTE (Reset X)</button>
-            <br><br>
-            <button onclick="resetTotale()" style="background:#444; color:#ccc; border:none; padding:10px; width:100%; border-radius:5px;">⚠️ Reset Totale Giudici</button>
-        </div>
-    </div>
+        <div class="colonna">
+            <div class="panel">
+                <h2>🎛️ Audio Pro</h2>
+                
+                <h3>Music Loop</h3>
+                <div class="audio-grid">
+                    <button id="btn-sigla" class="btn-sound bg-blue" onclick="toggleMusic('sigla')"><span class="key-hint">[Q]</span>SIGLA</button>
+                    <button id="btn-sottofondo" class="btn-sound bg-purple" onclick="toggleMusic('sottofondo')"><span class="key-hint">[W]</span>SOTTOFONDO</button>
+                    <button id="btn-suspense" class="btn-sound bg-orange" onclick="toggleMusic('suspense')"><span class="key-hint">[E]</span>SUSPENSE</button>
+                    <button id="btn-vittoria" class="btn-sound bg-green" onclick="toggleMusic('vittoria')"><span class="key-hint">[R]</span>VITTORIA</button>
+                    <button id="btn-alessandro" class="btn-sound bg-teal" onclick="toggleMusic('alessandro')"><span class="key-hint">[A]</span>SOTTOF. ALE</button>
+                </div>
 
-    <div class="panel">
-        <h2>🎛️ Audio Console</h2>
-        
-        <div class="audio-grid">
-            <button class="btn-sound bg-blue" onclick="toggleAudio('sigla')">
-                🎵 SIGLA
-                <span class="playing-indicator">▶</span>
-            </button>
-            
-            <button class="btn-sound bg-cyan" onclick="toggleAudio('entrata')">
-                🚪 ENTRATA
-                <span class="playing-indicator">▶</span>
-            </button>
+                <h3>Instant SFX</h3>
+                <div class="sfx-grid">
+                    <button id="btn-applausi" class="btn-sfx" onclick="toggleSfx('applausi')"><span class="key-hint">[1]</span> 👏 CLAP</button>
+                    <button id="btn-buu" class="btn-sfx" onclick="toggleSfx('buu')"><span class="key-hint">[2]</span> 👎 BUUU</button>
+                    <button id="btn-rullo" class="btn-sfx" onclick="toggleSfx('rullo')"><span class="key-hint">[3]</span> 🥁 RULLO</button>
+                    <button id="btn-grillo" class="btn-sfx" onclick="toggleSfx('grillo')"><span class="key-hint">[4]</span> 🦗 GRILLO</button>
+                </div>
 
-            <button class="btn-sound bg-purple" onclick="toggleAudio('sottofondo')">
-                🍸 SOTTOFONDO
-                <span class="playing-indicator">▶</span>
-            </button>
+                <div class="pro-controls">
+                    <button id="btn-talkover" class="btn-talkover" 
+                        onmousedown="setTalkover(true)" onmouseup="setTalkover(false)" 
+                        ontouchstart="setTalkover(true)" ontouchend="setTalkover(false)">
+                        🎤 TALKOVER [HOLD T]
+                    </button>
+                    <button class="btn-panic" onclick="panicMode()">🛑 PANIC [ESC]</button>
+                </div>
+                
+                <div class="mixer-container">
+                    <div class="volume-group">
+                        <span class="volume-label">Musica</span>
+                        <input type="range" id="volMusic" min="0" max="1" step="0.05" value="0.7" oninput="updateMusicVolume(this.value)">
+                    </div>
+                    <div class="volume-group">
+                        <span class="volume-label">Effetti</span>
+                        <input type="range" id="volSfx" min="0" max="1" step="0.05" value="1.0" oninput="updateSfxVolume(this.value)">
+                    </div>
+                </div>
+            </div>
 
-            <button class="btn-sound bg-orange" onclick="toggleAudio('suspense')">
-                😬 SUSPENSE
-                <span class="playing-indicator">▶</span>
-            </button>
-
-            <button class="btn-sound bg-green" style="grid-column: span 2;" onclick="playEffect('vittoria')">
-                🏆 VITTORIA / PASSAGGIO TURNO
-            </button>
-        </div>
-
-        <div class="fader-group">
-            <span>Vol. Musica</span>
-            <input type="range" id="volMusic" min="0" max="1" step="0.1" value="0.5" oninput="setVolume('music', this.value)">
-        </div>
-        <div class="fader-group">
-            <span>Vol. Effetti</span>
-            <input type="range" id="volSfx" min="0" max="1" step="0.1" value="1" oninput="setVolume('sfx', this.value)">
-        </div>
-
-        <div style="margin-top:20px; font-size:0.8em; color:#888;">
-            *Clicca sui pulsanti colorati per avviare/stoppare il loop.
+            <div class="right-bottom-container">
+                <div class="panel panel-player">
+                    <h2>📺 Player Video</h2>
+                    <div class="video-wrapper"><div id="player"></div></div>
+                </div>
+                <div class="panel panel-memo">
+                    <h2>📝 Note</h2>
+                    <textarea id="memo-pad" placeholder="Appunti..."></textarea>
+                </div>
+            </div>
         </div>
     </div>
 
     <audio id="track-sigla" src="sigla.mp3" loop></audio>
-    <audio id="track-entrata" src="entrata.mp3" loop></audio> <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
+    <audio id="track-sottofondo" src="sottofondo.mp3" loop></audio>
     <audio id="track-suspense" src="suspense.mp3" loop></audio>
-    <audio id="fx-vittoria" src="vittoria.mp3"></audio>
+    <audio id="track-vittoria" src="vittoria.mp3"></audio> 
+    <audio id="track-alessandro" src="alessandro.mp3" loop></audio>
+    
     <audio id="fx-vai" src="vai.mp3"></audio>
+    <audio id="sfx-applausi" src="applausi.mp3"></audio>
+    <audio id="sfx-buu" src="buu.mp3"></audio>
+    <audio id="sfx-rullo" src="rullo.mp3"></audio>
+    <audio id="sfx-grillo" src="grillo.mp3"></audio>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    
     <script>
-        const socket = io();
-        
-        // --- CONFIGURAZIONE FADE ---
-        const FADE_DURATION = 2000; // Durata dissolvenza in millisecondi (2 secondi)
-        let activeIntervals = {}; // Per memorizzare gli intervalli di fade e non sovrapporli
+        // --- 1. CONFIGURAZIONE PLAYLIST ---
+        const playlist = [
+            { nome: "1. Piccoli aiutanti di BN", id: "yogiJpFmuAA" }, 
+            { nome: "2. Tunak Tunak Star Trek",  id: "_NthoWFFZOU" },
+            { nome: "3. Chiara gemma",           id: "dSWhxDeMJaA" },
+            { nome: "4. Le pizzicate",           id: "HkojXZkXATw" },
+            { nome: "5. Sofia Barba",            id: "fQ7Bt10jUfM" },
+            { nome: "6. Giacomo Stursi",         id: "3qTDEpO7k8s" },
+            { nome: "7. The Little Mix",         id: "1mAwbK9IN0g" },
+            { nome: "8. Alessandro e animatori", id: "TJCXKII26rg" },
+            { nome: "9. Summer Girls 2010",      id: "czWcyZRAMtk" },
+            { nome: "10. Emily Tudisco",         id: "YQsjQiq2-VM" },
+            { nome: "11. Francesco Vantaggiato", id: "" },
+            { nome: "12. Antonio Botrugno",      id: "GCR5ujxheQg" },
+            { nome: "13. Stecchini Duo",         id: "wOxgZCoXRiQ" },
+            { nome: "14. Anna Marti",            id: "Kwx-3ihxiCQ" }
+        ];
 
-        // --- GESTIONE AUDIO ---
+        // --- 2. GENERAZIONE LISTA ---
+        const listContainer = document.getElementById('lista-bottoni');
+        playlist.forEach((item, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-concorrente';
+            btn.innerHTML = `<span>${item.nome}</span> <small>▶</small>`;
+            btn.onclick = () => loadVideo(index);
+            btn.id = `btn-c-${index}`;
+            listContainer.appendChild(btn);
+        });
+
+        // --- 3. AUDIO ENGINE ---
         const tracks = {
             sigla: document.getElementById('track-sigla'),
-            entrata: document.getElementById('track-entrata'),
             sottofondo: document.getElementById('track-sottofondo'),
-            suspense: document.getElementById('track-suspense')
+            suspense: document.getElementById('track-suspense'),
+            vittoria: document.getElementById('track-vittoria'),
+            alessandro: document.getElementById('track-alessandro') // Aggiunto qui
         };
-        const sfx = {
-            vittoria: document.getElementById('fx-vittoria'),
-            vai: document.getElementById('fx-vai')
+        const sfxVai = document.getElementById('fx-vai');
+        const instantSfx = {
+            applausi: document.getElementById('sfx-applausi'),
+            buu: document.getElementById('sfx-buu'),
+            rullo: document.getElementById('sfx-rullo'),
+            grillo: document.getElementById('sfx-grillo')
         };
 
-        // Valori volume correnti (dal cursore)
-        let currentMusicVol = 0.5;
-        let currentSfxVol = 1.0;
+        let musicVolume = 0.7;
+        let sfxVolume = 1.0;
+        let isTalkoverActive = false;
+        let fadeIntervals = {}; 
 
-        // FUNZIONE "MAGICA" PER IL FADE
+        // Rimuovi classe playing quando SFX finisce
+        Object.keys(instantSfx).forEach(name => {
+            instantSfx[name].addEventListener('ended', () => {
+                const btn = document.getElementById(`btn-${name}`);
+                if(btn) btn.classList.remove('playing');
+            });
+        });
+
         function fadeAudio(audio, targetVol, duration, callback) {
-            // Se c'è già un fade in corso su questa traccia, cancellalo
-            if (activeIntervals[audio.id]) clearInterval(activeIntervals[audio.id]);
-
-            const stepTime = 50; // Aggiorna ogni 50ms
+            const audioId = audio.id;
+            if (fadeIntervals[audioId]) clearInterval(fadeIntervals[audioId]);
+            if (targetVol > 0 && audio.paused) { audio.volume = 0; audio.play(); }
+            
+            const stepTime = 50; 
             const steps = duration / stepTime;
             const volStep = (targetVol - audio.volume) / steps;
-            
-            // Se stiamo alzando il volume, assicuriamoci che l'audio stia suonando
-            if (targetVol > 0 && audio.paused) {
-                audio.play();
-            }
 
-            activeIntervals[audio.id] = setInterval(() => {
+            fadeIntervals[audioId] = setInterval(() => {
                 let newVol = audio.volume + volStep;
-
-                // Controlli per non sforare (clamping)
-                if (volStep > 0 && newVol >= targetVol) newVol = targetVol;
-                if (volStep < 0 && newVol <= 0) newVol = 0;
-
-                audio.volume = newVol;
-
-                // Fine del fade
-                if (newVol === targetVol) {
-                    clearInterval(activeIntervals[audio.id]);
-                    delete activeIntervals[audio.id];
-                    
-                    // Se il target era 0 (fade out), mettiamo in pausa e resettiamo
-                    if (targetVol === 0) {
-                        audio.pause();
-                        audio.currentTime = 0;
-                    }
-                    
+                if ((volStep > 0 && newVol >= targetVol) || (volStep < 0 && newVol <= targetVol)) {
+                    audio.volume = targetVol;
+                    clearInterval(fadeIntervals[audioId]);
+                    delete fadeIntervals[audioId];
+                    if (targetVol <= 0.01) { audio.pause(); audio.currentTime = 0; audio.volume = 0; }
                     if (callback) callback();
-                }
+                } else { audio.volume = newVol; }
             }, stepTime);
         }
 
-        // GESTIONE PLAY/STOP CON FADE
-        function toggleAudio(name) {
+        // --- GESTIONE TRACCE MUSICALI ---
+        function toggleMusic(name) {
             const audio = tracks[name];
-            const btn = document.querySelector(`button[onclick="toggleAudio('${name}')"]`);
-            
-            // 1. Ferma (sfumando) tutte le altre tracce attive
-            Object.keys(tracks).forEach(k => {
-                if (k !== name) {
-                    const otherAudio = tracks[k];
-                    const otherBtn = document.querySelector(`button[onclick="toggleAudio('${k}')"]`);
-                    
-                    if (!otherAudio.paused && otherAudio.volume > 0) {
-                        // Fade Out rapido per le altre tracce
-                        fadeAudio(otherAudio, 0, 1500); 
-                        if(otherBtn) otherBtn.classList.remove('playing');
+            const btn = document.getElementById(`btn-${name}`);
+            const isPlaying = !audio.paused && audio.volume > 0;
+
+            if (isPlaying) {
+                fadeAudio(audio, 0, 1000, () => { if(btn) btn.classList.remove('playing'); });
+            } else {
+                Object.keys(tracks).forEach(key => {
+                    if (key !== name && !tracks[key].paused) {
+                        fadeAudio(tracks[key], 0, 1000);
+                        const other = document.getElementById(`btn-${key}`);
+                        if(other) other.classList.remove('playing');
                     }
+                });
+                if(player && typeof player.pauseVideo === 'function') player.pauseVideo();
+                
+                let targetV = isTalkoverActive ? musicVolume * 0.2 : musicVolume;
+                fadeAudio(audio, targetV, 1000);
+                if(btn) btn.classList.add('playing');
+            }
+        }
+
+        // --- GESTIONE SFX ---
+        function toggleSfx(name) {
+            const audio = instantSfx[name];
+            const btn = document.getElementById(`btn-${name}`);
+            const isPlaying = !audio.paused && audio.volume > 0;
+
+            if (isPlaying) {
+                fadeAudio(audio, 0, 500, () => { if(btn) btn.classList.remove('playing'); });
+            } else {
+                fadeAudio(audio, sfxVolume, 500);
+                if(btn) btn.classList.add('playing');
+            }
+        }
+
+        // --- TALKOVER & PANIC ---
+        function setTalkover(active) {
+            isTalkoverActive = active;
+            const btn = document.getElementById('btn-talkover');
+            if(active) btn.classList.add('active'); else btn.classList.remove('active');
+
+            Object.values(tracks).forEach(t => {
+                if(!t.paused && t.volume > 0) {
+                    t.volume = active ? musicVolume * 0.2 : musicVolume;
                 }
             });
+        }
 
-            // 2. Gestisci la traccia cliccata
-            if (audio.paused || audio.volume === 0) {
-                // START: Imposta volume a 0 e fai Fade In
-                audio.volume = 0;
-                fadeAudio(audio, currentMusicVol, FADE_DURATION);
-                btn.classList.add('playing');
+        function panicMode() {
+            if(player && typeof player.stopVideo === 'function') player.stopVideo();
+            
+            const allAudio = {...tracks, ...instantSfx, vai: sfxVai};
+            Object.keys(allAudio).forEach(k => {
+                const audio = allAudio[k];
+                audio.pause();
+                audio.currentTime = 0;
+                const btn = document.getElementById(`btn-${k}`);
+                if(btn) btn.classList.remove('playing');
+            });
+            timerStop();
+        }
+
+        // --- LIVE VOLUME UPDATES ---
+        function updateMusicVolume(val) {
+            musicVolume = parseFloat(val);
+            Object.values(tracks).forEach(t => { 
+                if (!t.paused && t.volume > 0) {
+                    t.volume = isTalkoverActive ? musicVolume * 0.2 : musicVolume;
+                }
+            });
+        }
+
+        function updateSfxVolume(val) {
+            sfxVolume = parseFloat(val);
+            Object.values(instantSfx).forEach(s => { if (!s.paused) s.volume = sfxVolume; });
+            sfxVai.volume = sfxVolume;
+        }
+
+        // --- TIMER ---
+        let timerInterval;
+        let timerSeconds = 0;
+        const timerDisplay = document.getElementById('timer');
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${m}:${s}`;
+        }
+        function timerStart() { if(!timerInterval) timerInterval = setInterval(() => { timerSeconds++; updateTimerDisplay(); }, 1000); }
+        function timerStop() { clearInterval(timerInterval); timerInterval = null; }
+        function timerReset() { timerStop(); timerSeconds = 0; updateTimerDisplay(); }
+
+        // --- MEMO ---
+        const memoPad = document.getElementById('memo-pad');
+        if(localStorage.getItem('regiaMemo')) memoPad.value = localStorage.getItem('regiaMemo');
+        memoPad.addEventListener('input', () => localStorage.setItem('regiaMemo', memoPad.value));
+
+        // --- TASTIERA ---
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+            
+            const key = e.key.toLowerCase();
+            
+            if (e.code === 'Space') { e.preventDefault(); panicMode(); return; }
+            if (e.code === 'Escape') { panicMode(); return; }
+            if (key === 't' && !e.repeat) setTalkover(true);
+
+            switch(key) {
+                case '1': toggleSfx('applausi'); break;
+                case '2': toggleSfx('buu'); break;
+                case '3': toggleSfx('rullo'); break;
+                case '4': toggleSfx('grillo'); break;
+                case 'q': toggleMusic('sigla'); break;
+                case 'w': toggleMusic('sottofondo'); break;
+                case 'e': toggleMusic('suspense'); break;
+                case 'r': toggleMusic('vittoria'); break;
+                case 'a': toggleMusic('alessandro'); break; // NUOVO TASTO
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+             if (e.key.toLowerCase() === 't') setTalkover(false);
+        });
+
+        // --- YOUTUBE ---
+        let player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%', width: '100%', videoId: '',
+                playerVars: { 'playsinline': 1, 'rel': 0, 'origin': window.location.origin },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
+            });
+        }
+        function onPlayerReady(event) { console.log("Player pronto"); }
+        function onPlayerStateChange(event) { if (event.data === YT.PlayerState.ENDED) player.stopVideo(); }
+        function loadVideo(index) {
+            document.querySelectorAll('.btn-concorrente').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-c-${index}`).classList.add('active');
+            timerReset();
+            
+            const videoId = playlist[index].id;
+            if (videoId && videoId.trim() !== "") {
+                player.loadVideoById(videoId);
+                Object.values(tracks).forEach(t => { if(!t.paused) fadeAudio(t, 0, 500); });
+                document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('playing'));
             } else {
-                // STOP: Fai Fade Out a 0
-                fadeAudio(audio, 0, 1500, () => {
-                    // Callback opzionale a fine fade out
-                });
-                btn.classList.remove('playing');
+                player.stopVideo();
+                alert(`⚠️ Nessun video per: ${playlist[index].nome}`);
             }
         }
 
-        // GESTIONE EFFETTI SINGOLI (Jingle) - Niente fade, devono essere immediati
-        function playEffect(name) {
-            // Opzionale: abbassa leggermente la musica di sottofondo mentre suona l'effetto?
-            // Per ora lo lasciamo semplice: suona sopra.
-            sfx[name].volume = currentSfxVol;
-            sfx[name].currentTime = 0;
-            sfx[name].play();
-        }
+        // --- SOCKET & STATUS ---
+        const socket = io();
+        const connStatus = document.getElementById('connStatus');
 
-        // CONTROLLO SLIDER VOLUME
-        function setVolume(type, val) {
-            const numericVal = parseFloat(val);
-            if (type === 'music') {
-                currentMusicVol = numericVal;
-                // Aggiorna volume solo delle tracce che stanno suonando (non quelle in fade out/stop)
-                Object.values(tracks).forEach(t => {
-                    if (!t.paused && t.volume > 0 && !activeIntervals[t.id]) {
-                        t.volume = currentMusicVol;
-                    }
-                });
-            } else {
-                currentSfxVol = numericVal;
-                Object.values(sfx).forEach(s => s.volume = currentSfxVol);
-            }
-        }
-        
-        // Inizializza volumi
-        document.getElementById('volMusic').value = 0.5;
-        document.getElementById('volSfx').value = 1.0;
+        socket.on('connect', () => {
+            connStatus.classList.remove('disconnected');
+            connStatus.classList.add('connected');
+            connStatus.title = "Server Connesso";
+        });
 
+        socket.on('disconnect', () => {
+            connStatus.classList.remove('connected');
+            connStatus.classList.add('disconnected');
+            connStatus.title = "DISCONNESSO!";
+        });
 
-        // --- GESTIONE SOCKET (Monitoraggio) ---
         socket.on('aggiorna', (stato) => {
             for (let i = 1; i <= 4; i++) {
-                const slot = stato[i];
                 const el = document.getElementById(`mon${i}`);
-                
-                if (slot.nome) {
-                    el.innerHTML = `${slot.nome} <span class="status-dot"></span>`;
-                    if (slot.scelta === 'X') {
-                        el.querySelector('.status-dot').classList.add('on');
-                        el.classList.add('attivo');
-                    } else {
-                        el.querySelector('.status-dot').classList.remove('on');
-                        el.classList.remove('attivo');
-                    }
+                if (stato[i].nome) {
+                    el.innerHTML = `${stato[i].nome}`;
+                    el.classList.toggle('attivo', stato[i].scelta === 'X');
                 } else {
-                    el.innerHTML = `Slot ${i} (Vuoto) <span class="status-dot"></span>`;
+                    el.innerHTML = `${i}`;
+                    el.classList.remove('attivo');
                 }
             }
         });
-
-        socket.on('suono', (scelta) => {
-            if (scelta === 'X') {
-                sfx.vai.volume = currentSfxVol;
-                sfx.vai.play();
-            }
-        });
-
-        function resetGara() {
-            socket.emit('reset');
-            // Se c'è suspense attiva, sfumala via
-            const suspenseTrack = tracks['suspense'];
-            if (!suspenseTrack.paused) {
-                toggleAudio('suspense'); // Questo attiverà il fade out automatico
-            }
-        }
+        socket.on('suono', (scelta) => { if (scelta === 'X') { sfxVai.currentTime = 0; sfxVai.volume = sfxVolume; sfxVai.play(); } });
         
-        function resetTotale() {
-            if(confirm("Vuoi scollegare tutti i giudici?")) socket.emit('reset-giudici');
+        function resetGara() { 
+            socket.emit('reset'); 
+            timerReset(); 
+            if(!tracks.suspense.paused) toggleMusic('suspense'); 
         }
+        function resetTotale() { if(confirm("Scollegare tutti?")) socket.emit('reset-giudici'); }
+
     </script>
 </body>
 </html>
