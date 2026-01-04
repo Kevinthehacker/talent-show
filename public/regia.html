@@ -2,87 +2,55 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - FINAL MASTER</title>
+    <title>Regia OGT - FULL SYNC</title>
     <style>
         :root { 
             --dark: #121212; --panel: #1e1e1e; --accent: #ffd700; 
             --red: #d32f2f; --green: #00e676; --blue: #1976d2;
             --purple: #7b1fa2; --orange: #f57c00; --teal: #009688;
         }
-        
         body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; height: 100vh; overflow: hidden; user-select: none; }
-        
-        /* Layout Grid */
         .main-grid { display: grid; grid-template-columns: 340px 1fr; gap: 10px; height: 100%; }
-        
-        /* Colonna sinistra scorrevole */
         .colonna-sx { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; padding-right: 5px; min-height: 0; }
         .colonna-dx { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
-        
         .panel { background: var(--panel); padding: 12px; border-radius: 8px; border: 1px solid #333; flex-shrink: 0; }
+        h2 { border-bottom: 1px solid #444; padding-bottom: 5px; margin: 0 0 8px 0; font-size: 0.95rem; color: var(--accent); display: flex; justify-content: space-between; }
         
-        h2 { border-bottom: 1px solid #444; padding-bottom: 5px; margin: 0 0 8px 0; font-size: 0.95rem; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
-        h3 { font-size: 0.75rem; color: #888; margin: 8px 0 4px 0; text-transform: uppercase; }
-
-        /* MONITOR */
         .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
         .mini-slot { background: #000; padding: 5px; border-radius: 4px; text-align: center; border: 1px solid #333; font-size: 0.8rem; color: #666; }
         .mini-slot.attivo { background: #3c0b0b; border-color: var(--red); color: white; font-weight: bold; }
-        
-        .timer-box { background: black; border: 1px solid #444; border-radius: 6px; padding: 5px 10px; display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .timer-display { font-family: 'Courier New', monospace; font-size: 1.5rem; color: var(--accent); font-weight: bold; }
-        
-        /* BOTTONI RESET */
-        .btn-reset-gara { width: 100%; padding: 10px; background: var(--red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem; margin-top: 5px; }
-        .btn-reset-gara:hover { background: #b71c1c; }
+        .btn-reset-gara { width: 100%; padding: 10px; background: var(--red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-reset-totale { width: 100%; padding: 8px; background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-top: 5px; }
-        .btn-reset-totale:hover { background: #444; color: white; }
-
-        /* PLAYLIST */
-        .panel-playlist { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
-        .playlist-container { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
-        .btn-concorrente { width: 100%; text-align: left; padding: 8px; margin-bottom: 3px; background: #2a2a2a; color: #ccc; border: none; border-left: 3px solid transparent; cursor: pointer; display: flex; justify-content: space-between; }
-        .btn-concorrente:hover { background: #333; color: white; }
+        
+        .playlist-container { flex-grow: 1; overflow-y: auto; }
+        .btn-concorrente { width: 100%; text-align: left; padding: 8px; margin-bottom: 3px; background: #2a2a2a; color: #ccc; border: none; border-left: 3px solid transparent; cursor: pointer; }
         .btn-concorrente.active { background: #333; color: var(--accent); border-left: 3px solid var(--accent); font-weight: bold; }
-
-        /* AUDIO GRID */
+        
         .audio-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
-        .btn-sound { border: none; padding: 10px 2px; font-size: 0.65rem; font-weight: bold; color: white; border-radius: 4px; cursor: pointer; position: relative; overflow: hidden; }
+        .btn-sound { border: none; padding: 10px 2px; font-size: 0.65rem; font-weight: bold; color: white; border-radius: 4px; cursor: pointer; position: relative; }
         .btn-sound.playing { box-shadow: inset 0 0 0 2px white; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-        
         .bg-blue { background: var(--blue); } .bg-purple { background: var(--purple); } .bg-orange { background: var(--orange); } .bg-green { background: var(--green); } .bg-teal { background: var(--teal); }
-
+        
         .sfx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 5px; }
         .btn-sfx { background: #37474f; color: #eceff1; padding: 8px 2px; font-size: 0.7rem; cursor: pointer; border: 1px solid #546e7a; border-radius: 4px; }
         .btn-sfx:active { transform: scale(0.95); }
-        .btn-sfx.playing { background: #455a64; color: var(--accent); border-color: var(--accent); }
-
-        /* CONTROLS & MIXER */
+        
         .pro-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px; }
         .btn-talkover { background: #ff9800; color: black; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-talkover.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .btn-talkover.active { background: var(--accent); }
         .btn-panic { background: #b71c1c; color: white; font-weight: bold; border: 1px solid red; border-radius: 4px; cursor: pointer; }
         
-        .mixer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; margin-top: 10px; }
-        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); height: 5px; }
-        input#volSfx { accent-color: #009688; }
-
-        /* VIDEO & PROJECTOR STATUS */
         .right-bottom-container { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
         .panel-player { flex: 2; display: flex; flex-direction: column; min-height: 0; padding-bottom: 5px; }
-        
-        .video-wrapper { flex-grow: 1; width: 100%; background: black; border-radius: 6px; overflow: hidden; border: 1px solid #444; position: relative; }
+        .video-wrapper { flex-grow: 1; width: 100%; background: black; border-radius: 6px; overflow: hidden; position: relative; }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
-        .projector-status-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #000; padding: 5px 10px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #333;
-        }
-        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; transition: 0.2s; }
+        
+        .projector-status-bar { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 5px 10px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #333; }
+        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
         .status-led.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
-        .status-led.syncing { background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: blink 0.5s infinite; }
-        .status-led.off { background: var(--red); }
+        .status-led.syncing { background: var(--orange); animation: blink 0.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
         
         .btn-open-proj { background: #333; color: white; border: 1px solid #555; font-size: 0.7rem; padding: 3px 8px; cursor: pointer; border-radius: 3px; }
         .btn-sync { background: #444; border: 1px solid #666; color: white; font-size: 0.7rem; cursor: pointer; padding: 3px 8px; border-radius: 3px; }
@@ -90,45 +58,27 @@
 
         .panel-memo { flex: 1; display: flex; flex-direction: column; min-height: 100px; }
         textarea#memo-pad { width: 100%; height: 100%; background: #111; border: 1px solid #333; color: #ddd; resize: none; padding: 8px; font-family: monospace; }
-        
-        @keyframes blink { 50% { opacity: 0.5; } }
         .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; display: inline-block; }
         .conn-dot.connected { background: var(--green); }
     </style>
 </head>
 <body>
-
     <div class="main-grid">
         <div class="colonna-sx">
             <div class="panel">
-                <h2>👁️ Monitor <div id="connStatus" class="conn-dot" title="Server"></div></h2>
-                
-                <div class="timer-box">
-                    <div class="timer-display" id="timer">00:00</div>
-                    <div>
-                        <button onclick="timerStart()">▶</button> 
-                        <button onclick="timerStop()">⏸</button> 
-                        <button onclick="timerReset()">↺</button>
-                    </div>
-                </div>
-
+                <h2>👁️ Monitor <div id="connStatus" class="conn-dot"></div></h2>
                 <div class="monitor-grid" id="monitor">
-                    <div class="mini-slot" id="mon1">1</div>
-                    <div class="mini-slot" id="mon2">2</div>
-                    <div class="mini-slot" id="mon3">3</div>
-                    <div class="mini-slot" id="mon4">4</div>
+                    <div class="mini-slot" id="mon1">1</div><div class="mini-slot" id="mon2">2</div>
+                    <div class="mini-slot" id="mon3">3</div><div class="mini-slot" id="mon4">4</div>
                 </div>
-                
-                <button class="btn-reset-gara" onclick="resetGara()">🔄 RESET VOTI (X)</button>
-                <button class="btn-reset-totale" onclick="resetTotale()">⚠️ RESET TOTALE GIUDICI</button>
+                <button class="btn-reset-gara" onclick="resetGara()">🔄 RESET X</button>
+                <button class="btn-reset-totale" onclick="resetTotale()">⚠️ RESET TOTALE</button>
             </div>
-
             <div class="panel panel-playlist">
                 <h2>🎤 Scaletta</h2>
                 <div class="playlist-container" id="lista-bottoni"></div>
             </div>
         </div>
-
         <div class="colonna-dx">
             <div class="panel">
                 <h2>🎛️ Audio</h2>
@@ -149,33 +99,18 @@
                     <button id="btn-talkover" class="btn-talkover" onmousedown="setTalkover(true)" onmouseup="setTalkover(false)">🎤 TALK</button>
                     <button class="btn-panic" onclick="panicMode()">🛑 PANIC</button>
                 </div>
-                <div class="mixer-container">
-                    <div><small>MUSIC</small><input type="range" id="volMusic" min="0" max="1" step="0.05" value="0.7" oninput="updateMusicVolume(this.value)"></div>
-                    <div><small>SFX</small><input type="range" id="volSfx" min="0" max="1" step="0.05" value="1.0" oninput="updateSfxVolume(this.value)"></div>
-                </div>
             </div>
-
             <div class="right-bottom-container">
                 <div class="panel panel-player">
-                    <h2>📺 Player Master (Confidence)</h2>
-                    
+                    <h2>📺 Player Master</h2>
                     <div class="projector-status-bar">
+                        <div><span id="proj-led" class="status-led"></span> <span id="proj-text" style="font-size:0.8rem; color:#888">OFFLINE</span></div>
                         <div>
-                            <span id="proj-led" class="status-led off"></span>
-                            <span id="proj-text" style="font-size:0.8rem; color:#888">OFFLINE</span>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn-sync" onclick="forceResync()">⚡ FORZA SYNC</button>
-                            <button class="btn-open-proj" onclick="openProjector()">📺 APRI POPUP</button>
+                            <button class="btn-open-proj" onclick="forceResync()">⚡ SYNC</button>
+                            <button class="btn-open-proj" onclick="openProjector()">📺 POPUP</button>
                         </div>
                     </div>
-
-                    <div id="videoContainer" class="video-wrapper">
-                        <div id="player"></div>
-                    </div>
-                </div>
-                <div class="panel panel-memo">
-                    <textarea id="memo-pad" placeholder="Note..."></textarea>
+                    <div class="video-wrapper"><div id="player"></div></div>
                 </div>
             </div>
         </div>
@@ -194,298 +129,122 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-    
     <script>
-        // --- PLAYLIST ---
         const playlist = [
-            { nome: "1. A Natale Puoi",          id: "IIIGrh2IW70" },
-            { nome: "2. Piccoli aiutanti di BN", id: "yogiJpFmuAA" },
-            { nome: "3. Tunak Tunak Star Trek",  id: "viMEhOWcxd0" },
-            { nome: "4. Chiara gemma",           id: "dSWhxDeMJaA" },
-            { nome: "5. Le pizzicate",           id: "HkojXZkXATw" },
-            { nome: "6. Sofia Barba",            id: "fQ7Bt10jUfM" },
-            { nome: "7. Giacomo Stursi",         id: "eWTgTeedLCM" }, // ID AGGIORNATO QUI
-            { nome: "8. The Little Mix",         id: "1mAwbK9IN0g" },
-            { nome: "9. Alessandro e animatori", id: "TJCXKII26rg" },
-            { nome: "10. Antonio Botrugno",      id: "GCR5ujxheQg" },
-            { nome: "11. Summer Girls 2010",     id: "czWcyZRAMtk" },
-            { nome: "12. Emily Tudisco",         id: "YQsjQiq2-VM" },
-            { nome: "13. Francesco Vantaggiato", id: "" },
-            { nome: "14. Stecchini Duo",         id: "wOxgZCoXRiQ" },
-            { nome: "15. Judo Giuri",            id: "hKRUPYrAQoE" },
-            { nome: "16. Anna Marti",            id: "Kwx-3ihxiCQ" }
+            { nome: "1. A Natale Puoi", id: "IIIGrh2IW70" }, { nome: "2. Piccoli aiutanti di BN", id: "yogiJpFmuAA" },
+            { nome: "3. Tunak Tunak Star Trek", id: "viMEhOWcxd0" }, { nome: "4. Chiara gemma", id: "dSWhxDeMJaA" },
+            { nome: "5. Le pizzicate", id: "HkojXZkXATw" }, { nome: "6. Sofia Barba", id: "fQ7Bt10jUfM" },
+            { nome: "7. Giacomo Stursi", id: "eWTgTeedLCM" }, { nome: "8. The Little Mix", id: "1mAwbK9IN0g" },
+            { nome: "9. Alessandro e animatori", id: "TJCXKII26rg" }, { nome: "10. Antonio Botrugno", id: "GCR5ujxheQg" },
+            { nome: "11. Summer Girls 2010", id: "czWcyZRAMtk" }, { nome: "12. Emily Tudisco", id: "YQsjQiq2-VM" },
+            { nome: "13. Francesco Vantaggiato", id: "" }, { nome: "14. Stecchini Duo", id: "wOxgZCoXRiQ" },
+            { nome: "15. Judo Giuri", id: "hKRUPYrAQoE" }, { nome: "16. Anna Marti", id: "Kwx-3ihxiCQ" }
         ];
 
-        // RENDER LISTA
         const listContainer = document.getElementById('lista-bottoni');
         playlist.forEach((item, index) => {
             const btn = document.createElement('button');
             btn.className = 'btn-concorrente';
-            btn.innerHTML = `<span>${item.nome}</span> <small>▶</small>`;
+            btn.innerText = item.nome;
             btn.onclick = () => loadVideo(index);
             btn.id = `btn-c-${index}`;
             listContainer.appendChild(btn);
         });
 
-        // AUDIO ENGINE
-        const tracks = {
-            sigla: document.getElementById('track-sigla'),
-            sottofondo: document.getElementById('track-sottofondo'),
-            suspense: document.getElementById('track-suspense'),
-            vittoria: document.getElementById('track-vittoria'),
-            alessandro: document.getElementById('track-alessandro')
-        };
-        const instantSfx = {
-            applausi: document.getElementById('sfx-applausi'),
-            buu: document.getElementById('sfx-buu'),
-            rullo: document.getElementById('sfx-rullo'),
-            grillo: document.getElementById('sfx-grillo')
-        };
+        const tracks = { sigla: document.getElementById('track-sigla'), sottofondo: document.getElementById('track-sottofondo'), suspense: document.getElementById('track-suspense'), vittoria: document.getElementById('track-vittoria'), alessandro: document.getElementById('track-alessandro') };
+        const sfx = { applausi: document.getElementById('sfx-applausi'), buu: document.getElementById('sfx-buu'), rullo: document.getElementById('sfx-rullo'), grillo: document.getElementById('sfx-grillo') };
         const sfxVai = document.getElementById('fx-vai');
-        let musicVolume = 0.7, sfxVolume = 1.0, isTalkover = false, fadeIntervals = {};
-
-        Object.keys(instantSfx).forEach(name => {
-            instantSfx[name].addEventListener('ended', () => document.getElementById(`btn-${name}`).classList.remove('playing'));
-        });
-
-        function fadeAudio(audio, targetVol, duration, callback) {
-            const id = audio.id;
-            if (fadeIntervals[id]) clearInterval(fadeIntervals[id]);
-            if (targetVol > 0 && audio.paused) { audio.volume = 0; audio.play(); }
-            const steps = duration / 20; const volStep = (targetVol - audio.volume) / steps;
-            fadeIntervals[id] = setInterval(() => {
-                let newVol = audio.volume + volStep;
-                if ((volStep > 0 && newVol >= targetVol) || (volStep < 0 && newVol <= targetVol)) {
-                    audio.volume = targetVol; clearInterval(fadeIntervals[id]);
-                    if (targetVol <= 0.01) { audio.pause(); audio.currentTime = 0; }
-                    if (callback) callback();
-                } else audio.volume = newVol;
-            }, 20);
-        }
+        let fadeInt, localPlayer, remoteWindow, syncInt;
 
         function toggleMusic(name) {
-            const audio = tracks[name]; const btn = document.getElementById(`btn-${name}`);
-            if (!audio.paused && audio.volume > 0) {
-                fadeAudio(audio, 0, 1000, () => btn.classList.remove('playing'));
-            } else {
-                Object.values(tracks).forEach(t => { if(t !== audio && !t.paused) fadeAudio(t, 0, 1000); });
-                document.querySelectorAll('.audio-grid .btn-sound').forEach(b => { if(b!==btn) b.classList.remove('playing'); });
-                
+            const t = tracks[name]; const btn = document.getElementById(`btn-${name}`);
+            if(!t.paused) { t.volume=0; t.pause(); t.currentTime=0; btn.classList.remove('playing'); }
+            else { 
+                Object.values(tracks).forEach(x=>{x.pause(); x.currentTime=0;}); 
+                document.querySelectorAll('.btn-sound').forEach(b=>b.classList.remove('playing'));
                 if(localPlayer && typeof localPlayer.pauseVideo === 'function') localPlayer.pauseVideo();
-
-                fadeAudio(audio, isTalkover ? musicVolume*0.2 : musicVolume, 100);
-                btn.classList.add('playing');
+                t.volume=0.7; t.play(); btn.classList.add('playing'); 
             }
         }
-
-        function toggleSfx(name) {
-            const audio = instantSfx[name]; const btn = document.getElementById(`btn-${name}`);
-            if (!audio.paused) fadeAudio(audio, 0, 200, () => btn.classList.remove('playing'));
-            else { fadeAudio(audio, sfxVolume, 50); btn.classList.add('playing'); }
-        }
-
-        function setTalkover(active) {
-            isTalkover = active;
-            document.getElementById('btn-talkover').classList.toggle('active', active);
-            Object.values(tracks).forEach(t => { if(!t.paused) t.volume = active ? musicVolume*0.2 : musicVolume; });
-        }
-
-        function updateMusicVolume(v) { musicVolume = parseFloat(v); Object.values(tracks).forEach(t => { if(!t.paused) t.volume = isTalkover ? musicVolume*0.2 : musicVolume; }); }
-        function updateSfxVolume(v) { sfxVolume = parseFloat(v); Object.values(instantSfx).forEach(s => s.volume = sfxVolume); sfxVai.volume = sfxVolume; }
-
+        function toggleSfx(name) { sfx[name].currentTime=0; sfx[name].play(); }
+        function setTalkover(active) { Object.values(tracks).forEach(t => { if(!t.paused) t.volume = active ? 0.2 : 0.7; }); document.getElementById('btn-talkover').classList.toggle('active', active); }
+        
         function panicMode() {
             if(localPlayer) localPlayer.stopVideo();
-            sendToRemote('stop');
-            Object.values(tracks).concat(Object.values(instantSfx)).concat([sfxVai]).forEach(a => { a.pause(); a.currentTime=0; });
+            sendRemote('stop');
+            // MANDA STOP AI TELEFONI
+            socket.emit('controllo-video', 'stop'); 
+            Object.values(tracks).concat(Object.values(sfx)).concat([sfxVai]).forEach(a => { a.pause(); a.currentTime=0; });
             document.querySelectorAll('.playing').forEach(b => b.classList.remove('playing'));
-            timerStop();
         }
 
-        // TIMER & MEMO
-        let tInt, tSec = 0; const tDisp = document.getElementById('timer');
-        function uT() { tDisp.innerText = `${Math.floor(tSec/60).toString().padStart(2,'0')}:${(tSec%60).toString().padStart(2,'0')}`; }
-        function timerStart() { if(!tInt) tInt = setInterval(() => { tSec++; uT(); }, 1000); }
-        function timerStop() { clearInterval(tInt); tInt = null; }
-        function timerReset() { timerStop(); tSec = 0; uT(); }
-
-        const memo = document.getElementById('memo-pad');
-        if(localStorage.getItem('rM')) memo.value = localStorage.getItem('rM');
-        memo.addEventListener('input', () => localStorage.setItem('rM', memo.value));
-
-        // HOTKEYS
-        document.addEventListener('keydown', (e) => {
-            if(e.target.tagName === 'TEXTAREA') return;
-            const k = e.key.toLowerCase();
-            if(e.code === 'Space' || e.code === 'Escape') { e.preventDefault(); panicMode(); return; }
-            if(k === 't' && !e.repeat) setTalkover(true);
-            const map = {'q':'sigla','w':'sottofondo','e':'suspense','r':'vittoria','a':'alessandro', '1':'applausi','2':'buu','3':'rullo','4':'grillo'};
-            if(map[k]) { if('1234'.includes(k)) toggleSfx(map[k]); else toggleMusic(map[k]); }
-        });
-        document.addEventListener('keyup', (e) => { if(e.key.toLowerCase() === 't') setTalkover(false); });
-
-        // ==========================================
-        //  ACTIVE SYNC VIDEO ENGINE
-        // ==========================================
-        let localPlayer;
-        let remoteWindow = null;
-        let syncInterval = null;
-
+        // VIDEO SYNC
         function onYouTubeIframeAPIReady() {
-            localPlayer = new YT.Player('player', {
-                height: '100%', width: '100%', videoId: '',
+            localPlayer = new YT.Player('player', { height: '100%', width: '100%', videoId: '',
                 playerVars: { 'playsinline': 1, 'rel': 0, 'origin': window.location.origin },
-                events: { 
-                    'onReady': e => { e.target.unMute(); e.target.setVolume(100); }, 
-                    'onStateChange': onLocalStateChange 
-                }
+                events: { 'onReady': e => { e.target.unMute(); e.target.setVolume(100); }, 'onStateChange': onStateChange }
             });
         }
+        
+        // --- QUI AVVIENE LA MAGIA ---
+        function onStateChange(e) {
+            let cmd = null;
+            if(e.data === 1) { cmd = 'play'; startSync(); } // 1 = Playing
+            if(e.data === 2) { cmd = 'pause'; stopSync(); } // 2 = Paused
+            if(e.data === 0) { cmd = 'stop'; stopSync(); } // 0 = Ended
 
-        function onLocalStateChange(e) {
-            if(e.data === YT.PlayerState.PLAYING) {
-                sendToRemote('play');
-                startSyncLoop(); // AVVIA CONTROLLO SYNC
-            }
-            else if(e.data === YT.PlayerState.PAUSED) {
-                sendToRemote('pause');
-                stopSyncLoop();
-            }
-            else if(e.data === YT.PlayerState.ENDED) {
-                sendToRemote('stop');
-                stopSyncLoop();
+            if(cmd) {
+                // 1. Manda al Proiettore
+                sendRemote(cmd);
+                // 2. Manda ai Telefoni (NUOVO!)
+                socket.emit('controllo-video', cmd);
             }
         }
 
+        function sendRemote(act, par) { if(remoteWindow && !remoteWindow.closed) remoteWindow.postMessage({action:act, param:par}, '*'); }
+        
         function loadVideo(index) {
             document.querySelectorAll('.btn-concorrente').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-c-${index}`).classList.add('active');
-            timerReset();
             
-            // INVIO NOME AL SERVER
-            socket.emit('set-concorrente', { 
-                nome: playlist[index].nome, 
-                id: playlist[index].id 
-            });
+            // INVIO NOME E ID AL SERVER
+            socket.emit('set-concorrente', { nome: playlist[index].nome, id: playlist[index].id });
 
-            const vid = playlist[index].id;
-            if(vid) {
-                // 1. Carica Locale (Master)
-                if(localPlayer) { localPlayer.loadVideoById(vid); localPlayer.unMute(); localPlayer.setVolume(100); }
-                // 2. Carica Remoto (Slave Muto)
-                sendToRemote('load', vid);
-                // 3. Stoppa musica
-                Object.values(tracks).forEach(t => { if(!t.paused) fadeAudio(t, 0, 500); });
+            if(playlist[index].id) {
+                if(localPlayer) localPlayer.loadVideoById(playlist[index].id);
+                sendRemote('load', playlist[index].id);
+                Object.values(tracks).forEach(t => { t.pause(); t.currentTime=0; });
                 document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('playing'));
-            } else {
-                if(localPlayer) localPlayer.stopVideo();
-                sendToRemote('stop');
-                alert("Nessun video ID!");
-            }
+            } else { alert("Nessun Video"); }
         }
 
-        // --- IL CUORE DEL SYNC AUTOMATICO ---
-        function startSyncLoop() {
-            if(syncInterval) clearInterval(syncInterval);
-            const statusLed = document.getElementById('proj-led');
-            const statusText = document.getElementById('proj-text');
-
-            syncInterval = setInterval(() => {
-                if(!remoteWindow || remoteWindow.closed || !localPlayer) return;
-                // Chiediamo al remoto il suo tempo
-                remoteWindow.postMessage({ action: 'getTime' }, '*');
-            }, 500); 
-        }
-
-        function stopSyncLoop() {
-            if(syncInterval) clearInterval(syncInterval);
-            document.getElementById('proj-led').className = 'status-led on'; 
-        }
-
-        function forceResync() {
-            if(localPlayer && remoteWindow) {
-                const t = localPlayer.getCurrentTime();
-                remoteWindow.postMessage({ action: 'seek', param: t }, '*');
-            }
-        }
-
-        function sendToRemote(action, param) {
-            if(remoteWindow && !remoteWindow.closed) {
-                remoteWindow.postMessage({ action: action, param: param }, '*');
-            }
-        }
-
-        // --- GESTIONE POPUP PROIETTORE ---
         function openProjector() {
             remoteWindow = window.open("", "Proiettore", "width=800,height=600,menubar=no,toolbar=no");
-            if(!remoteWindow) { alert("SBLOCCA I POPUP!"); return; }
-
-            remoteWindow.document.write(`
-                <html><head><title>LIVE OUT</title>
-                <style>body{margin:0;background:black;overflow:hidden;height:100vh;} iframe{width:100%;height:100%;border:none;}</style>
-                </head><body><div id="p"></div><script src="https://www.youtube.com/iframe_api"><\/script>
-                <script>
-                    var p;
-                    function onYouTubeIframeAPIReady() {
-                        p = new YT.Player('p', { width:'100%', height:'100%', videoId:'', 
-                        playerVars:{'rel':0,'controls':0,'disablekb':1, 'suggestedQuality': 'hd1080'}, 
-                        events:{
-                            'onReady': e => { e.target.mute(); window.opener.postMessage('READY','*'); }
-                        }});
-                    }
-                    
-                    window.addEventListener('message', e => {
-                        if(!p || !p.loadVideoById) return;
-                        const a = e.data.action;
-                        const v = e.data.param;
-
-                        if(a==='load') { p.loadVideoById(v); p.pauseVideo(); }
-                        if(a==='play') p.playVideo();
-                        if(a==='pause') p.pauseVideo();
-                        if(a==='stop') p.stopVideo();
-                        if(a==='seek') p.seekTo(v);
-                        
-                        // Risponde con il tempo attuale per il sync check
-                        if(a==='getTime') {
-                            window.opener.postMessage({ type: 'SYNC_CHECK', time: p.getCurrentTime() }, '*');
-                        }
-                    });
-                <\/script></body></html>
-            `);
+            if(!remoteWindow) return alert("Sblocca Popup!");
+            remoteWindow.document.write(`<html><body style="margin:0;background:black;overflow:hidden;"><div id="p" style="width:100vw;height:100vh;"></div><script src="https://www.youtube.com/iframe_api"><\/script><script>var p; function onYouTubeIframeAPIReady(){p=new YT.Player('p',{width:'100%',height:'100%',videoId:'',playerVars:{'controls':0,'disablekb':1},events:{'onReady':e=>{e.target.mute();window.opener.postMessage('READY','*');}}});} window.addEventListener('message',e=>{if(!p)return; if(e.data.action==='load')p.loadVideoById(e.data.param); if(e.data.action==='play')p.playVideo(); if(e.data.action==='pause')p.pauseVideo(); if(e.data.action==='stop')p.stopVideo(); if(e.data.action==='seek')p.seekTo(e.data.param); if(e.data.action==='getTime')window.opener.postMessage({type:'SYNC',t:p.getCurrentTime()},'*');});<\/script></body></html>`);
         }
 
-        // RICEZIONE DATI DAL PROIETTORE
-        window.addEventListener('message', (e) => {
-            const led = document.getElementById('proj-led');
-            const txt = document.getElementById('proj-text');
+        // SYNC LOOP
+        function startSync() {
+            if(syncInt) clearInterval(syncInt);
+            syncInt = setInterval(() => { if(remoteWindow) remoteWindow.postMessage({action:'getTime'}, '*'); }, 500);
+        }
+        function stopSync() { clearInterval(syncInt); document.getElementById('proj-led').className = 'status-led on'; }
+        function forceResync() { if(localPlayer) sendRemote('seek', localPlayer.getCurrentTime()); }
 
-            if(e.data === 'READY') { 
-                led.className = 'status-led on'; txt.innerText = "PRONTO (MUTO)"; txt.style.color="#00e676"; 
-            }
-            
-            // LOGICA DI SYNC CHECK
-            if(e.data.type === 'SYNC_CHECK' && localPlayer) {
-                const remoteTime = e.data.time;
-                const localTime = localPlayer.getCurrentTime();
-                const diff = Math.abs(localTime - remoteTime);
-
-                // Se sfasati di più di 0.3 secondi, forza il remoto al tempo del master
-                if(diff > 0.3) { 
-                    led.className = 'status-led syncing'; 
-                    txt.innerText = "SYNCING...";
-                    txt.style.color = "orange";
-                    remoteWindow.postMessage({ action: 'seek', param: localTime }, '*');
-                } else {
-                    led.className = 'status-led on'; 
-                    txt.innerText = "IN SYNC";
-                    txt.style.color = "#00e676";
-                }
+        window.addEventListener('message', e => {
+            if(e.data === 'READY') { document.getElementById('proj-led').className='status-led on'; document.getElementById('proj-text').innerText="PRONTO"; }
+            if(e.data.type === 'SYNC' && localPlayer) {
+                if(Math.abs(localPlayer.getCurrentTime() - e.data.t) > 0.3) {
+                    document.getElementById('proj-led').className='status-led syncing';
+                    sendRemote('seek', localPlayer.getCurrentTime());
+                } else document.getElementById('proj-led').className='status-led on';
             }
         });
 
         // SOCKET
         const socket = io();
         socket.on('connect', () => document.getElementById('connStatus').classList.add('connected'));
-        socket.on('disconnect', () => document.getElementById('connStatus').classList.remove('connected'));
         socket.on('aggiorna', s => {
             for(let i=1; i<=4; i++) {
                 const el = document.getElementById(`mon${i}`);
@@ -493,10 +252,9 @@
                 else { el.innerHTML = i; el.classList.remove('attivo'); }
             }
         });
-        socket.on('suono', x => { if(x==='X') { sfxVai.currentTime=0; sfxVai.volume=sfxVolume; sfxVai.play(); }});
-        function resetGara() { socket.emit('reset'); timerReset(); if(!tracks.suspense.paused) toggleMusic('suspense'); }
+        socket.on('suono', x => { if(x==='X') { sfxVai.currentTime=0; sfxVai.play(); } });
+        function resetGara() { socket.emit('reset'); if(!tracks.suspense.paused) toggleMusic('suspense'); }
         function resetTotale() { if(confirm("Reset Totale?")) socket.emit('reset-giudici'); }
-
     </script>
 </body>
 </html>
