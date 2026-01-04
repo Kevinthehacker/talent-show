@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - ACTIVE SYNC FIXED</title>
+    <title>Regia OGT - FINAL MASTER</title>
     <style>
         :root { 
             --dark: #121212; --panel: #1e1e1e; --accent: #ffd700; 
@@ -15,8 +15,8 @@
         /* Layout Grid */
         .main-grid { display: grid; grid-template-columns: 340px 1fr; gap: 10px; height: 100%; }
         
-        /* Colonna sinistra scorrevole per evitare che i bottoni spariscano */
-        .colonna-sx { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; min-height: 0; padding-right: 5px; }
+        /* Colonna sinistra scorrevole */
+        .colonna-sx { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; padding-right: 5px; min-height: 0; }
         .colonna-dx { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
         
         .panel { background: var(--panel); padding: 12px; border-radius: 8px; border: 1px solid #333; flex-shrink: 0; }
@@ -24,7 +24,7 @@
         h2 { border-bottom: 1px solid #444; padding-bottom: 5px; margin: 0 0 8px 0; font-size: 0.95rem; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
         h3 { font-size: 0.75rem; color: #888; margin: 8px 0 4px 0; text-transform: uppercase; }
 
-        /* MONITOR & LISTA */
+        /* MONITOR */
         .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
         .mini-slot { background: #000; padding: 5px; border-radius: 4px; text-align: center; border: 1px solid #333; font-size: 0.8rem; color: #666; }
         .mini-slot.attivo { background: #3c0b0b; border-color: var(--red); color: white; font-weight: bold; }
@@ -32,13 +32,13 @@
         .timer-box { background: black; border: 1px solid #444; border-radius: 6px; padding: 5px 10px; display: flex; justify-content: space-between; margin-bottom: 8px; }
         .timer-display { font-family: 'Courier New', monospace; font-size: 1.5rem; color: var(--accent); font-weight: bold; }
         
-        /* BOTTONI RESET (Stile migliorato) */
+        /* BOTTONI RESET */
         .btn-reset-gara { width: 100%; padding: 10px; background: var(--red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem; margin-top: 5px; }
         .btn-reset-gara:hover { background: #b71c1c; }
-        
         .btn-reset-totale { width: 100%; padding: 8px; background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-top: 5px; }
         .btn-reset-totale:hover { background: #444; color: white; }
 
+        /* PLAYLIST */
         .panel-playlist { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
         .playlist-container { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
         .btn-concorrente { width: 100%; text-align: left; padding: 8px; margin-bottom: 3px; background: #2a2a2a; color: #ccc; border: none; border-left: 3px solid transparent; cursor: pointer; display: flex; justify-content: space-between; }
@@ -83,7 +83,6 @@
         .status-led.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
         .status-led.syncing { background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: blink 0.5s infinite; }
         .status-led.off { background: var(--red); }
-        .status-text { font-size: 0.8rem; font-weight: bold; color: #888; }
         
         .btn-open-proj { background: #333; color: white; border: 1px solid #555; font-size: 0.7rem; padding: 3px 8px; cursor: pointer; border-radius: 3px; }
         .btn-sync { background: #444; border: 1px solid #666; color: white; font-size: 0.7rem; cursor: pointer; padding: 3px 8px; border-radius: 3px; }
@@ -163,7 +162,7 @@
                     <div class="projector-status-bar">
                         <div>
                             <span id="proj-led" class="status-led off"></span>
-                            <span id="proj-text" class="status-text">PROIETTORE OFFLINE</span>
+                            <span id="proj-text" style="font-size:0.8rem; color:#888">OFFLINE</span>
                         </div>
                         <div style="display:flex; gap:5px;">
                             <button class="btn-sync" onclick="forceResync()">⚡ FORZA SYNC</button>
@@ -204,8 +203,8 @@
             { nome: "3. Tunak Tunak Star Trek",  id: "viMEhOWcxd0" },
             { nome: "4. Chiara gemma",           id: "dSWhxDeMJaA" },
             { nome: "5. Le pizzicate",           id: "HkojXZkXATw" },
-            { nome: "6. Sofia Barba",            id: "eWTgTeedLCM" },
-            { nome: "7. Giacomo Stursi",         id: "3qTDEpO7k8s" },
+            { nome: "6. Sofia Barba",            id: "fQ7Bt10jUfM" },
+            { nome: "7. Giacomo Stursi",         id: "eWTgTeedLCM" }, // ID AGGIORNATO QUI
             { nome: "8. The Little Mix",         id: "1mAwbK9IN0g" },
             { nome: "9. Alessandro e animatori", id: "TJCXKII26rg" },
             { nome: "10. Antonio Botrugno",      id: "GCR5ujxheQg" },
@@ -362,6 +361,9 @@
             document.getElementById(`btn-c-${index}`).classList.add('active');
             timerReset();
             
+            // INVIO NOME AL SERVER
+            socket.emit('set-concorrente', playlist[index].nome);
+
             const vid = playlist[index].id;
             if(vid) {
                 // 1. Carica Locale (Master)
