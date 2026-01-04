@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - ULTIMATE TURBO</title>
+    <title>Regia OGT - DUAL MONITOR</title>
     <style>
         :root { 
             --dark: #121212; 
@@ -74,7 +74,6 @@
         /* --- DESTRA: AUDIO --- */
         .audio-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 5px; }
         
-        /* Rimossa transition opacity lenta per i bottoni */
         .btn-sound { 
             border: none; padding: 10px 2px; font-size: 0.65rem; font-weight: bold; color: white; 
             border-radius: 5px; cursor: pointer; position: relative; overflow: hidden; 
@@ -82,11 +81,8 @@
         .btn-sound.playing { box-shadow: inset 0 0 0 2px white; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
         
-        .bg-blue { background: var(--blue); } 
-        .bg-purple { background: var(--purple); } 
-        .bg-orange { background: var(--orange); } 
-        .bg-green { background: var(--green); }
-        .bg-teal { background: var(--teal); }
+        .bg-blue { background: var(--blue); } .bg-purple { background: var(--purple); } 
+        .bg-orange { background: var(--orange); } .bg-green { background: var(--green); } .bg-teal { background: var(--teal); }
 
         .sfx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
         .btn-sfx {
@@ -123,9 +119,25 @@
         /* PLAYER & MEMO */
         .right-bottom-container { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
         .panel-player { flex: 2; display: flex; flex-direction: column; min-height: 0; padding-bottom: 5px; }
+        
         .video-wrapper { flex-grow: 1; width: 100%; background: black; border-radius: 6px; overflow: hidden; border: 1px solid #444; position: relative; }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
+        /* Overlay quando il proiettore è attivo */
+        .ext-status {
+            position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); 
+            color: var(--accent); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; 
+            border: 1px solid var(--accent); display: none; z-index: 10;
+        }
+        .remote-active .ext-status { display: block; }
+
+        .btn-projector {
+            position: absolute; bottom: 10px; right: 10px; z-index: 20;
+            background: #333; color: white; border: 1px solid #555; padding: 5px 10px; 
+            border-radius: 4px; cursor: pointer; font-size: 0.75rem;
+        }
+        .btn-projector:hover { background: #444; border-color: white; }
+
         .panel-memo { flex: 1; display: flex; flex-direction: column; min-height: 100px; }
         textarea#memo-pad { width: 100%; height: 100%; background: #111; border: 1px solid #333; color: #ddd; resize: none; font-family: 'Consolas', monospace; padding: 8px; border-radius: 6px; box-sizing: border-box; font-size: 0.85rem; }
         textarea#memo-pad:focus { outline: 1px solid var(--accent); }
@@ -212,7 +224,11 @@
             <div class="right-bottom-container">
                 <div class="panel panel-player">
                     <h2>📺 Player Video</h2>
-                    <div class="video-wrapper"><div id="player"></div></div>
+                    <div id="videoContainer" class="video-wrapper">
+                        <div class="ext-status">📡 PROIETTORE ATTIVO</div>
+                        <div id="player"></div>
+                        <button class="btn-projector" onclick="openProjector()">📺 APRI PROIETTORE</button>
+                    </div>
                 </div>
                 <div class="panel panel-memo">
                     <h2>📝 Note</h2>
@@ -240,22 +256,20 @@
     <script>
         // --- 1. CONFIGURAZIONE PLAYLIST ---
         const playlist = [
-            { nome: "1. A Natale Puoi", id: "IIIGrh2IW70" },
-            { nome: "2. Piccoli aiutanti di BN", id: "yogiJpFmuAA" }, 
-            { nome: "3. Tunak Tunak Star Trek",  id: "viMEhOWcxd0" },
-            { nome: "4. Chiara gemma",           id: "dSWhxDeMJaA" },
-            { nome: "5. Le pizzicate",           id: "HkojXZkXATw" },
-            { nome: "6. Sofia Barba",            id: "fQ7Bt10jUfM" },
-            { nome: "7. Giacomo Stursi",         id: "3qTDEpO7k8s" },
-            { nome: "8. The Little Mix",         id: "1mAwbK9IN0g" },
-            { nome: "9. Alessandro e animatori", id: "TJCXKII26rg" },
-            { nome: "10. Antonio Botrugno",      id: "GCR5ujxheQg" },
-            { nome: "11. Summer Girls 2010",      id: "czWcyZRAMtk" },
-            { nome: "12. Emily Tudisco",         id: "YQsjQiq2-VM" },
-            { nome: "13. Francesco Vantaggiato", id: "" },
-            { nome: "14. Stecchini Duo",         id: "wOxgZCoXRiQ" },
-            { nome: "15. Judo Giuri",         id: "hKRUPYrAQoE" },
-            { nome: "16. Anna Marti",            id: "Kwx-3ihxiCQ" }
+            { nome: "1. Piccoli aiutanti di BN", id: "yogiJpFmuAA" }, 
+            { nome: "2. Tunak Tunak Star Trek",  id: "_NthoWFFZOU" },
+            { nome: "3. Chiara gemma",           id: "dSWhxDeMJaA" },
+            { nome: "4. Le pizzicate",           id: "HkojXZkXATw" },
+            { nome: "5. Sofia Barba",            id: "fQ7Bt10jUfM" },
+            { nome: "6. Giacomo Stursi",         id: "3qTDEpO7k8s" },
+            { nome: "7. The Little Mix",         id: "1mAwbK9IN0g" },
+            { nome: "8. Alessandro e animatori", id: "TJCXKII26rg" },
+            { nome: "9. Summer Girls 2010",      id: "czWcyZRAMtk" },
+            { nome: "10. Emily Tudisco",         id: "YQsjQiq2-VM" },
+            { nome: "11. Francesco Vantaggiato", id: "" },
+            { nome: "12. Antonio Botrugno",      id: "GCR5ujxheQg" },
+            { nome: "13. Stecchini Duo",         id: "wOxgZCoXRiQ" },
+            { nome: "14. Anna Marti",            id: "Kwx-3ihxiCQ" }
         ];
 
         // --- 2. GENERAZIONE LISTA ---
@@ -297,65 +311,49 @@
             });
         });
 
-        // FUNZIONE FADE MIGLIORATA
         function fadeAudio(audio, targetVol, duration, callback) {
             const audioId = audio.id;
             if (fadeIntervals[audioId]) clearInterval(fadeIntervals[audioId]);
-            
-            // SE E' UN FADE IN (Start): Parte SUBITO
-            if (targetVol > 0 && audio.paused) { 
-                audio.volume = 0; 
-                audio.play(); 
-            }
-            
-            const stepTime = 15; // Aggiornamento frequente (15ms)
+            if (targetVol > 0 && audio.paused) { audio.volume = 0; audio.play(); }
+            const stepTime = 15; 
             const steps = duration / stepTime;
             const volStep = (targetVol - audio.volume) / steps;
 
             fadeIntervals[audioId] = setInterval(() => {
                 let newVol = audio.volume + volStep;
-                
-                // Fine fade
                 if ((volStep > 0 && newVol >= targetVol) || (volStep < 0 && newVol <= targetVol)) {
                     audio.volume = targetVol;
                     clearInterval(fadeIntervals[audioId]);
                     delete fadeIntervals[audioId];
-                    // Se volume zero, pausa
                     if (targetVol <= 0.01) { audio.pause(); audio.currentTime = 0; audio.volume = 0; }
                     if (callback) callback();
-                } else { 
-                    audio.volume = newVol; 
-                }
+                } else { audio.volume = newVol; }
             }, stepTime);
         }
 
-        // --- GESTIONE TRACCE MUSICALI ---
         function toggleMusic(name) {
             const audio = tracks[name];
             const btn = document.getElementById(`btn-${name}`);
             const isPlaying = !audio.paused && audio.volume > 0;
 
             if (isPlaying) {
-                // STOP: Fade Out dolce (1 secondo)
                 fadeAudio(audio, 0, 1000, () => { if(btn) btn.classList.remove('playing'); });
             } else {
-                // START: Fade In RAPIDO (100ms) -> Sembra istantaneo
                 Object.keys(tracks).forEach(key => {
                     if (key !== name && !tracks[key].paused) {
-                        fadeAudio(tracks[key], 0, 1000); // Gli altri escono lenti
+                        fadeAudio(tracks[key], 0, 1000);
                         const other = document.getElementById(`btn-${key}`);
                         if(other) other.classList.remove('playing');
                     }
                 });
-                if(player && typeof player.pauseVideo === 'function') player.pauseVideo();
+                controlDualPlayer('pause'); // Pausa Video se parte musica
                 
                 let targetV = isTalkoverActive ? musicVolume * 0.2 : musicVolume;
-                fadeAudio(audio, targetV, 100); // 100ms = Turbo Start
+                fadeAudio(audio, targetV, 100); 
                 if(btn) btn.classList.add('playing');
             }
         }
 
-        // --- GESTIONE SFX ---
         function toggleSfx(name) {
             const audio = instantSfx[name];
             const btn = document.getElementById(`btn-${name}`);
@@ -364,27 +362,20 @@
             if (isPlaying) {
                 fadeAudio(audio, 0, 300, () => { if(btn) btn.classList.remove('playing'); });
             } else {
-                // SFX Start: 50ms (Immediato)
                 fadeAudio(audio, sfxVolume, 50); 
                 if(btn) btn.classList.add('playing');
             }
         }
 
-        // --- TALKOVER & PANIC ---
         function setTalkover(active) {
             isTalkoverActive = active;
             const btn = document.getElementById('btn-talkover');
             if(active) btn.classList.add('active'); else btn.classList.remove('active');
-
-            Object.values(tracks).forEach(t => {
-                if(!t.paused && t.volume > 0) {
-                    t.volume = active ? musicVolume * 0.2 : musicVolume;
-                }
-            });
+            Object.values(tracks).forEach(t => { if(!t.paused && t.volume > 0) t.volume = active ? musicVolume * 0.2 : musicVolume; });
         }
 
         function panicMode() {
-            if(player && typeof player.stopVideo === 'function') player.stopVideo();
+            controlDualPlayer('stop');
             const allAudio = {...tracks, ...instantSfx, vai: sfxVai};
             Object.keys(allAudio).forEach(k => {
                 const audio = allAudio[k];
@@ -395,16 +386,10 @@
             timerStop();
         }
 
-        // --- LIVE VOLUME UPDATES ---
         function updateMusicVolume(val) {
             musicVolume = parseFloat(val);
-            Object.values(tracks).forEach(t => { 
-                if (!t.paused && t.volume > 0) {
-                    t.volume = isTalkoverActive ? musicVolume * 0.2 : musicVolume;
-                }
-            });
+            Object.values(tracks).forEach(t => { if (!t.paused && t.volume > 0) t.volume = isTalkoverActive ? musicVolume * 0.2 : musicVolume; });
         }
-
         function updateSfxVolume(val) {
             sfxVolume = parseFloat(val);
             Object.values(instantSfx).forEach(s => { if (!s.paused) s.volume = sfxVolume; });
@@ -424,12 +409,11 @@
         function timerStop() { clearInterval(timerInterval); timerInterval = null; }
         function timerReset() { timerStop(); timerSeconds = 0; updateTimerDisplay(); }
 
-        // --- MEMO ---
+        // --- MEMO & KEYS ---
         const memoPad = document.getElementById('memo-pad');
         if(localStorage.getItem('regiaMemo')) memoPad.value = localStorage.getItem('regiaMemo');
         memoPad.addEventListener('input', () => localStorage.setItem('regiaMemo', memoPad.value));
 
-        // --- TASTIERA ---
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
             const key = e.key.toLowerCase();
@@ -449,20 +433,48 @@
                 case 'a': toggleMusic('alessandro'); break;
             }
         });
-
         document.addEventListener('keyup', (e) => { if (e.key.toLowerCase() === 't') setTalkover(false); });
 
-        // --- YOUTUBE ---
-        let player;
+
+        // ==========================================
+        //  GESTIONE DUAL VIDEO (LOCALE + REMOTO)
+        // ==========================================
+        let localPlayer;
+        let remoteWindow = null;
+        let remotePlayerReady = false;
+
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
+            localPlayer = new YT.Player('player', {
                 height: '100%', width: '100%', videoId: '',
                 playerVars: { 'playsinline': 1, 'rel': 0, 'origin': window.location.origin },
-                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
+                events: { 'onStateChange': onLocalStateChange }
             });
         }
-        function onPlayerReady(event) { console.log("Player pronto"); }
-        function onPlayerStateChange(event) { if (event.data === YT.PlayerState.ENDED) player.stopVideo(); }
+
+        function onLocalStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                localPlayer.stopVideo();
+                // Se finisce quello locale, stoppa anche il remoto
+                if(remoteWindow && !remoteWindow.closed) {
+                     remoteWindow.postMessage({ action: 'stop' }, '*');
+                }
+            }
+        }
+
+        // Funzione Unificata per controllare entrambi i player
+        function controlDualPlayer(action, param) {
+            // 1. Controlla Locale
+            if(localPlayer && typeof localPlayer[action + 'Video'] === 'function') {
+                if(action === 'load') localPlayer.loadVideoById(param);
+                else localPlayer[action + 'Video']();
+            }
+
+            // 2. Controlla Remoto (Via messaggi)
+            if(remoteWindow && !remoteWindow.closed) {
+                remoteWindow.postMessage({ action: action, param: param }, '*');
+            }
+        }
+
         function loadVideo(index) {
             document.querySelectorAll('.btn-concorrente').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-c-${index}`).classList.add('active');
@@ -470,22 +482,72 @@
             
             const videoId = playlist[index].id;
             if (videoId && videoId.trim() !== "") {
-                player.loadVideoById(videoId);
+                // Carica SU ENTRAMBI
+                controlDualPlayer('load', videoId);
+                
+                // Ferma musica locale
                 Object.values(tracks).forEach(t => { if(!t.paused) fadeAudio(t, 0, 500); });
                 document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('playing'));
             } else {
-                player.stopVideo();
+                controlDualPlayer('stop');
                 alert(`⚠️ Nessun video per: ${playlist[index].nome}`);
             }
         }
 
-        // --- SOCKET & STATUS ---
+        function openProjector() {
+            remoteWindow = window.open("", "Proiettore", "width=800,height=600,menubar=no,toolbar=no,location=no,status=no");
+            
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Proiettore OGT - LIVE</title>
+                    <style>
+                        body { margin:0; background:black; overflow:hidden; display:flex; align-items:center; justify-content:center; height:100vh; }
+                        #player { width: 100vw; height: 100vh; }
+                    </style>
+                </head>
+                <body>
+                    <div id="player"></div>
+                    <script src="https://www.youtube.com/iframe_api"><\/script>
+                    <script>
+                        var player;
+                        function onYouTubeIframeAPIReady() {
+                            player = new YT.Player('player', {
+                                height: '100%', width: '100%',
+                                videoId: '',
+                                playerVars: { 'playsinline': 1, 'rel': 0, 'controls': 0, 'disablekb': 1, 'fs': 0 },
+                                events: {
+                                    'onReady': function(e) { 
+                                        e.target.mute(); // Muto di default per evitare eco con la regia
+                                    }
+                                }
+                            });
+                        }
+
+                        // Ascolta comandi dalla Regia
+                        window.addEventListener('message', function(e) {
+                            if(!player || !player.loadVideoById) return;
+                            
+                            if (e.data.action === 'load') player.loadVideoById(e.data.param);
+                            else if (e.data.action === 'play') player.playVideo();
+                            else if (e.data.action === 'pause') player.pauseVideo();
+                            else if (e.data.action === 'stop') player.stopVideo();
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `;
+            
+            remoteWindow.document.write(htmlContent);
+            document.getElementById('videoContainer').classList.add('remote-active');
+        }
+
+        // --- SOCKET ---
         const socket = io();
         const connStatus = document.getElementById('connStatus');
-
         socket.on('connect', () => { connStatus.classList.remove('disconnected'); connStatus.classList.add('connected'); });
         socket.on('disconnect', () => { connStatus.classList.remove('connected'); connStatus.classList.add('disconnected'); });
-
         socket.on('aggiorna', (stato) => {
             for (let i = 1; i <= 4; i++) {
                 const el = document.getElementById(`mon${i}`);
