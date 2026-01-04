@@ -38,13 +38,12 @@ let stato = {
   4: { nome: "", scelta: null }
 };
 
-let concorrenteAttuale = "In attesa dell'inizio...";
+let concorrenteAttuale = { nome: "In attesa dell'inizio...", id: "" };
 
 // --- 4. GESTIONE SOCKET (La Logica) ---
 io.on('connection', (socket) => {
-  // Appena qualcuno si collega, riceve lo stato e il nome del cantante
   socket.emit('aggiorna', stato);
-  socket.emit('cambia-nome', concorrenteAttuale);
+  socket.emit('cambia-concorrente', concorrenteAttuale);
 
   // A. LOGIN GIUDICE
   socket.on('login', (data) => {
@@ -74,10 +73,10 @@ io.on('connection', (socket) => {
   });
 
   // C. CAMBIO NOME CONCORRENTE (Dalla Regia ai Telefoni)
-  socket.on('set-concorrente', (nome) => {
-      concorrenteAttuale = nome;
-      io.emit('cambia-nome', concorrenteAttuale); // Aggiorna i display dei giudici
-      console.log("🎤 In gara ora:", nome);
+  socket.on('set-concorrente', (dati) => {
+      concorrenteAttuale = dati;
+      io.emit('cambia-concorrente', concorrenteAttuale); 
+      console.log("🎤 In gara:", dati.nome);
   });
 
   // D. RESET GARA (Nuovo Concorrente)
@@ -106,3 +105,4 @@ server.listen(PORT, () => {
   console.log(`- Giudici: http://localhost:${PORT}/`);
   console.log(`- Regia:   http://localhost:${PORT}/regia`);
 });
+
