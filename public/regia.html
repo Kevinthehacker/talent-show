@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - ACTIVE SYNC</title>
+    <title>Regia OGT - ACTIVE SYNC FIXED</title>
     <style>
         :root { 
             --dark: #121212; --panel: #1e1e1e; --accent: #ffd700; 
@@ -11,9 +11,15 @@
         }
         
         body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; height: 100vh; overflow: hidden; user-select: none; }
+        
+        /* Layout Grid */
         .main-grid { display: grid; grid-template-columns: 340px 1fr; gap: 10px; height: 100%; }
-        .colonna { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
-        .panel { background: var(--panel); padding: 12px; border-radius: 8px; border: 1px solid #333; }
+        
+        /* Colonna sinistra scorrevole per evitare che i bottoni spariscano */
+        .colonna-sx { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; min-height: 0; padding-right: 5px; }
+        .colonna-dx { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+        
+        .panel { background: var(--panel); padding: 12px; border-radius: 8px; border: 1px solid #333; flex-shrink: 0; }
         
         h2 { border-bottom: 1px solid #444; padding-bottom: 5px; margin: 0 0 8px 0; font-size: 0.95rem; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
         h3 { font-size: 0.75rem; color: #888; margin: 8px 0 4px 0; text-transform: uppercase; }
@@ -26,6 +32,14 @@
         .timer-box { background: black; border: 1px solid #444; border-radius: 6px; padding: 5px 10px; display: flex; justify-content: space-between; margin-bottom: 8px; }
         .timer-display { font-family: 'Courier New', monospace; font-size: 1.5rem; color: var(--accent); font-weight: bold; }
         
+        /* BOTTONI RESET (Stile migliorato) */
+        .btn-reset-gara { width: 100%; padding: 10px; background: var(--red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem; margin-top: 5px; }
+        .btn-reset-gara:hover { background: #b71c1c; }
+        
+        .btn-reset-totale { width: 100%; padding: 8px; background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-top: 5px; }
+        .btn-reset-totale:hover { background: #444; color: white; }
+
+        .panel-playlist { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
         .playlist-container { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
         .btn-concorrente { width: 100%; text-align: left; padding: 8px; margin-bottom: 3px; background: #2a2a2a; color: #ccc; border: none; border-left: 3px solid transparent; cursor: pointer; display: flex; justify-content: space-between; }
         .btn-concorrente:hover { background: #333; color: white; }
@@ -86,26 +100,37 @@
 <body>
 
     <div class="main-grid">
-        <div class="colonna">
+        <div class="colonna-sx">
             <div class="panel">
                 <h2>👁️ Monitor <div id="connStatus" class="conn-dot" title="Server"></div></h2>
+                
                 <div class="timer-box">
                     <div class="timer-display" id="timer">00:00</div>
-                    <div><button onclick="timerStart()">▶</button> <button onclick="timerStop()">⏸</button> <button onclick="timerReset()">↺</button></div>
+                    <div>
+                        <button onclick="timerStart()">▶</button> 
+                        <button onclick="timerStop()">⏸</button> 
+                        <button onclick="timerReset()">↺</button>
+                    </div>
                 </div>
+
                 <div class="monitor-grid" id="monitor">
-                    <div class="mini-slot" id="mon1">1</div><div class="mini-slot" id="mon2">2</div>
-                    <div class="mini-slot" id="mon3">3</div><div class="mini-slot" id="mon4">4</div>
+                    <div class="mini-slot" id="mon1">1</div>
+                    <div class="mini-slot" id="mon2">2</div>
+                    <div class="mini-slot" id="mon3">3</div>
+                    <div class="mini-slot" id="mon4">4</div>
                 </div>
-                <button class="btn-reset-gara" onclick="resetGara()">🔄 RESET X</button>
+                
+                <button class="btn-reset-gara" onclick="resetGara()">🔄 RESET VOTI (X)</button>
+                <button class="btn-reset-totale" onclick="resetTotale()">⚠️ RESET TOTALE GIUDICI</button>
             </div>
+
             <div class="panel panel-playlist">
                 <h2>🎤 Scaletta</h2>
                 <div class="playlist-container" id="lista-bottoni"></div>
             </div>
         </div>
 
-        <div class="colonna">
+        <div class="colonna-dx">
             <div class="panel">
                 <h2>🎛️ Audio</h2>
                 <div class="audio-grid">
@@ -180,7 +205,7 @@
             { nome: "4. Chiara gemma",           id: "dSWhxDeMJaA" },
             { nome: "5. Le pizzicate",           id: "HkojXZkXATw" },
             { nome: "6. Sofia Barba",            id: "fQ7Bt10jUfM" },
-            { nome: "7. Giacomo Stursi",         id: "eWTgTeedLCM" },
+            { nome: "7. Giacomo Stursi",         id: "3qTDEpO7k8s" },
             { nome: "8. The Little Mix",         id: "1mAwbK9IN0g" },
             { nome: "9. Alessandro e animatori", id: "TJCXKII26rg" },
             { nome: "10. Antonio Botrugno",      id: "GCR5ujxheQg" },
@@ -361,15 +386,14 @@
 
             syncInterval = setInterval(() => {
                 if(!remoteWindow || remoteWindow.closed || !localPlayer) return;
-                
                 // Chiediamo al remoto il suo tempo
                 remoteWindow.postMessage({ action: 'getTime' }, '*');
-            }, 500); // Controlla ogni 0.5 secondi
+            }, 500); 
         }
 
         function stopSyncLoop() {
             if(syncInterval) clearInterval(syncInterval);
-            document.getElementById('proj-led').className = 'status-led on'; // Torna verde statico
+            document.getElementById('proj-led').className = 'status-led on'; 
         }
 
         function forceResync() {
@@ -406,7 +430,6 @@
                     
                     window.addEventListener('message', e => {
                         if(!p || !p.loadVideoById) return;
-                        
                         const a = e.data.action;
                         const v = e.data.param;
 
@@ -440,15 +463,14 @@
                 const localTime = localPlayer.getCurrentTime();
                 const diff = Math.abs(localTime - remoteTime);
 
-                if(diff > 0.3) { // Se sfasati di più di 0.3 secondi
-                    led.className = 'status-led syncing'; // Led Arancione
+                // Se sfasati di più di 0.3 secondi, forza il remoto al tempo del master
+                if(diff > 0.3) { 
+                    led.className = 'status-led syncing'; 
                     txt.innerText = "SYNCING...";
                     txt.style.color = "orange";
-                    
-                    // FORZA IL PROIETTORE AL TEMPO DEL MASTER
                     remoteWindow.postMessage({ action: 'seek', param: localTime }, '*');
                 } else {
-                    led.className = 'status-led on'; // Led Verde
+                    led.className = 'status-led on'; 
                     txt.innerText = "IN SYNC";
                     txt.style.color = "#00e676";
                 }
