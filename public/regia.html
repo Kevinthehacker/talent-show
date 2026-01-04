@@ -2,26 +2,22 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - FINAL + ENTRATA</title>
+    <title>Regia OGT - FADE FIXED</title>
     <style>
         :root { 
             --dark: #121212; --panel: #1e1e1e; --accent: #ffd700; 
             --red: #d32f2f; --green: #00e676; --blue: #1976d2;
             --purple: #7b1fa2; --orange: #f57c00; --teal: #009688;
-            --pink: #e91e63; /* Nuovo colore per Entrata */
+            --pink: #e91e63;
         }
         
         body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; height: 100vh; overflow: hidden; user-select: none; }
         
-        /* Layout Grid */
         .main-grid { display: grid; grid-template-columns: 340px 1fr; gap: 10px; height: 100%; }
-        
-        /* Colonna sinistra scorrevole */
         .colonna-sx { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; padding-right: 5px; min-height: 0; }
         .colonna-dx { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
         
         .panel { background: var(--panel); padding: 12px; border-radius: 8px; border: 1px solid #333; flex-shrink: 0; }
-        
         h2 { border-bottom: 1px solid #444; padding-bottom: 5px; margin: 0 0 8px 0; font-size: 0.95rem; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
 
         /* MONITOR */
@@ -32,12 +28,10 @@
         .timer-box { background: black; border: 1px solid #444; border-radius: 6px; padding: 5px 10px; display: flex; justify-content: space-between; margin-bottom: 8px; }
         .timer-display { font-family: 'Courier New', monospace; font-size: 1.5rem; color: var(--accent); font-weight: bold; }
         
-        /* BOTTONI RESET */
         .btn-reset-gara { width: 100%; padding: 10px; background: var(--red); color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem; margin-top: 5px; }
         .btn-reset-gara:hover { background: #b71c1c; }
         .btn-reset-totale { width: 100%; padding: 8px; background: #333; color: #aaa; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-top: 5px; }
-        .btn-reset-totale:hover { background: #444; color: white; }
-
+        
         /* PLAYLIST */
         .panel-playlist { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
         .playlist-container { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
@@ -45,58 +39,50 @@
         .btn-concorrente:hover { background: #333; color: white; }
         .btn-concorrente.active { background: #333; color: var(--accent); border-left: 3px solid var(--accent); font-weight: bold; }
 
-        /* AUDIO GRID (Aggiornata a 3 colonne per 6 bottoni) */
+        /* AUDIO */
         .audio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-        .btn-sound { border: none; padding: 12px 2px; font-size: 0.7rem; font-weight: bold; color: white; border-radius: 4px; cursor: pointer; position: relative; overflow: hidden; }
+        .btn-sound { border: none; padding: 12px 2px; font-size: 0.7rem; font-weight: bold; color: white; border-radius: 4px; cursor: pointer; position: relative; }
         .btn-sound.playing { box-shadow: inset 0 0 0 2px white; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
         
-        .bg-blue { background: var(--blue); } 
-        .bg-purple { background: var(--purple); } 
-        .bg-orange { background: var(--orange); } 
-        .bg-green { background: var(--green); } 
-        .bg-teal { background: var(--teal); }
-        .bg-pink { background: var(--pink); } /* Nuovo stile */
+        .bg-blue { background: var(--blue); } .bg-purple { background: var(--purple); } 
+        .bg-orange { background: var(--orange); } .bg-green { background: var(--green); } 
+        .bg-teal { background: var(--teal); } .bg-pink { background: var(--pink); }
 
         .sfx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 10px; }
         .btn-sfx { background: #37474f; color: #eceff1; padding: 8px 2px; font-size: 0.7rem; cursor: pointer; border: 1px solid #546e7a; border-radius: 4px; }
         .btn-sfx:active { transform: scale(0.95); }
         .btn-sfx.playing { background: #455a64; color: var(--accent); border-color: var(--accent); }
 
-        /* CONTROLS & MIXER */
         .pro-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px; }
         .btn-talkover { background: #ff9800; color: black; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-talkover.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .btn-talkover.active { background: var(--accent); }
         .btn-panic { background: #b71c1c; color: white; font-weight: bold; border: 1px solid red; border-radius: 4px; cursor: pointer; }
         
         .mixer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; margin-top: 10px; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); height: 5px; }
-        input#volSfx { accent-color: #009688; }
 
-        /* VIDEO & PROJECTOR STATUS */
+        /* PLAYER & NOTE */
         .right-bottom-container { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
         .panel-player { flex: 2; display: flex; flex-direction: column; min-height: 0; padding-bottom: 5px; }
         
-        .video-wrapper { flex-grow: 1; width: 100%; background: black; border-radius: 6px; overflow: hidden; border: 1px solid #444; position: relative; }
+        .video-wrapper { flex-grow: 1; width: 100%; background: black; border-radius: 6px; overflow: hidden; position: relative; }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
         .projector-status-bar { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 5px 10px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #333; }
-        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; transition: 0.2s; }
+        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
         .status-led.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
-        .status-led.syncing { background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: blink 0.5s infinite; }
-        .status-led.off { background: var(--red); }
+        .status-led.syncing { background: var(--orange); animation: blink 0.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
         
         .btn-open-proj { background: #333; color: white; border: 1px solid #555; font-size: 0.7rem; padding: 3px 8px; cursor: pointer; border-radius: 3px; }
         .btn-sync { background: #444; border: 1px solid #666; color: white; font-size: 0.7rem; cursor: pointer; padding: 3px 8px; border-radius: 3px; }
-        .btn-sync:active { background: var(--accent); color: black; }
 
-        .panel-memo { flex: 1; display: flex; flex-direction: column; min-height: 100px; }
-        textarea#memo-pad { width: 100%; height: 100%; background: #111; border: 1px solid #333; color: #ddd; resize: none; padding: 8px; font-family: monospace; }
+        .panel-memo { flex-grow: 1; display: flex; flex-direction: column; min-height: 120px; }
+        textarea#memo-pad { flex-grow: 1; width: 100%; background: #111; border: 1px solid #333; color: #ddd; resize: none; padding: 8px; font-family: monospace; box-sizing: border-box; }
         
-        @keyframes blink { 50% { opacity: 0.5; } }
         .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; display: inline-block; }
         .conn-dot.connected { background: var(--green); }
-        
         .key-hint { display: block; font-size: 0.6em; opacity: 0.6; margin-bottom: 2px; }
     </style>
 </head>
@@ -105,8 +91,7 @@
     <div class="main-grid">
         <div class="colonna-sx">
             <div class="panel">
-                <h2>👁️ Monitor <div id="connStatus" class="conn-dot" title="Server"></div></h2>
-                
+                <h2>👁️ Monitor <div id="connStatus" class="conn-dot"></div></h2>
                 <div class="timer-box">
                     <div class="timer-display" id="timer">00:00</div>
                     <div>
@@ -115,18 +100,13 @@
                         <button onclick="timerReset()">↺</button>
                     </div>
                 </div>
-
                 <div class="monitor-grid" id="monitor">
-                    <div class="mini-slot" id="mon1">1</div>
-                    <div class="mini-slot" id="mon2">2</div>
-                    <div class="mini-slot" id="mon3">3</div>
-                    <div class="mini-slot" id="mon4">4</div>
+                    <div class="mini-slot" id="mon1">1</div><div class="mini-slot" id="mon2">2</div>
+                    <div class="mini-slot" id="mon3">3</div><div class="mini-slot" id="mon4">4</div>
                 </div>
-                
                 <button class="btn-reset-gara" onclick="resetGara()">🔄 RESET VOTI (X)</button>
-                <button class="btn-reset-totale" onclick="resetTotale()">⚠️ RESET TOTALE GIUDICI</button>
+                <button class="btn-reset-totale" onclick="resetTotale()">⚠️ RESET TOTALE</button>
             </div>
-
             <div class="panel panel-playlist">
                 <h2>🎤 Scaletta</h2>
                 <div class="playlist-container" id="lista-bottoni"></div>
@@ -140,24 +120,20 @@
                     <button id="btn-sigla" class="btn-sound bg-blue" onclick="toggleMusic('sigla')"><span class="key-hint">[Q]</span>SIGLA</button>
                     <button id="btn-entrata" class="btn-sound bg-pink" onclick="toggleMusic('entrata')"><span class="key-hint">[S]</span>ENTRATA</button>
                     <button id="btn-sottofondo" class="btn-sound bg-purple" onclick="toggleMusic('sottofondo')"><span class="key-hint">[W]</span>SOTTOF.</button>
-                    
                     <button id="btn-suspense" class="btn-sound bg-orange" onclick="toggleMusic('suspense')"><span class="key-hint">[E]</span>SUSPENSE</button>
                     <button id="btn-vittoria" class="btn-sound bg-green" onclick="toggleMusic('vittoria')"><span class="key-hint">[R]</span>VITTORIA</button>
                     <button id="btn-alessandro" class="btn-sound bg-teal" onclick="toggleMusic('alessandro')"><span class="key-hint">[A]</span>ALE</button>
                 </div>
-                
                 <div class="sfx-grid">
                     <button id="btn-applausi" class="btn-sfx" onclick="toggleSfx('applausi')"><span class="key-hint">[1]</span> 👏 CLAP</button>
                     <button id="btn-buu" class="btn-sfx" onclick="toggleSfx('buu')"><span class="key-hint">[2]</span> 👎 BUU</button>
                     <button id="btn-rullo" class="btn-sfx" onclick="toggleSfx('rullo')"><span class="key-hint">[3]</span> 🥁 RULLO</button>
                     <button id="btn-grillo" class="btn-sfx" onclick="toggleSfx('grillo')"><span class="key-hint">[4]</span> 🦗 GRILLO</button>
                 </div>
-                
                 <div class="pro-controls">
                     <button id="btn-talkover" class="btn-talkover" onmousedown="setTalkover(true)" onmouseup="setTalkover(false)">🎤 TALK [T]</button>
                     <button class="btn-panic" onclick="panicMode()">🛑 PANIC [ESC]</button>
                 </div>
-                
                 <div class="mixer-container">
                     <div><small>MUSIC</small><input type="range" id="volMusic" min="0" max="1" step="0.05" value="0.7" oninput="updateMusicVolume(this.value)"></div>
                     <div><small>SFX</small><input type="range" id="volSfx" min="0" max="1" step="0.05" value="1.0" oninput="updateSfxVolume(this.value)"></div>
@@ -167,7 +143,6 @@
             <div class="right-bottom-container">
                 <div class="panel panel-player">
                     <h2>📺 Player Master (Confidence)</h2>
-                    
                     <div class="projector-status-bar">
                         <div><span id="proj-led" class="status-led off"></span> <span id="proj-text" style="font-size:0.8rem; color:#888">OFFLINE</span></div>
                         <div style="display:flex; gap:5px;">
@@ -175,20 +150,19 @@
                             <button class="btn-open-proj" onclick="openProjector()">📺 POPUP</button>
                         </div>
                     </div>
-
-                    <div id="videoContainer" class="video-wrapper">
-                        <div id="player"></div>
-                    </div>
+                    <div class="video-wrapper"><div id="player"></div></div>
                 </div>
                 <div class="panel panel-memo">
-                    <textarea id="memo-pad" placeholder="Note..."></textarea>
+                    <h2>📝 Note Regia</h2>
+                    <textarea id="memo-pad" placeholder="Appunti..."></textarea>
                 </div>
             </div>
         </div>
     </div>
 
     <audio id="track-sigla" src="sigla.mp3" loop preload="auto"></audio>
-    <audio id="track-entrata" src="entrata.mp3" loop preload="auto"></audio> <audio id="track-sottofondo" src="sottofondo.mp3" loop preload="auto"></audio>
+    <audio id="track-entrata" src="entrata.mp3" loop preload="auto"></audio>
+    <audio id="track-sottofondo" src="sottofondo.mp3" loop preload="auto"></audio>
     <audio id="track-suspense" src="suspense.mp3" loop preload="auto"></audio>
     <audio id="track-vittoria" src="vittoria.mp3" preload="auto"></audio> 
     <audio id="track-alessandro" src="alessandro.mp3" loop preload="auto"></audio>
@@ -222,10 +196,10 @@
             listContainer.appendChild(btn);
         });
 
-        // AUDIO ENGINE AGGIORNATO
+        // AUDIO ENGINE CON FADE CORRETTO
         const tracks = { 
             sigla: document.getElementById('track-sigla'), 
-            entrata: document.getElementById('track-entrata'), // NUOVO
+            entrata: document.getElementById('track-entrata'),
             sottofondo: document.getElementById('track-sottofondo'), 
             suspense: document.getElementById('track-suspense'), 
             vittoria: document.getElementById('track-vittoria'), 
@@ -242,30 +216,67 @@
         function fadeAudio(audio, targetVol, duration, callback) {
             const id = audio.id;
             if (fadeIntervals[id]) clearInterval(fadeIntervals[id]);
+            
+            // Start immediato
             if (targetVol > 0 && audio.paused) { audio.volume = 0; audio.play(); }
-            const steps = duration / 20; const volStep = (targetVol - audio.volume) / steps;
+            
+            const stepTime = 20; // Aggiornamento ogni 20ms
+            const steps = duration / stepTime;
+            const volStep = (targetVol - audio.volume) / steps;
+
             fadeIntervals[id] = setInterval(() => {
                 let newVol = audio.volume + volStep;
+                // Controllo limiti e target
                 if ((volStep > 0 && newVol >= targetVol) || (volStep < 0 && newVol <= targetVol)) {
-                    audio.volume = targetVol; clearInterval(fadeIntervals[id]);
-                    if (targetVol <= 0.01) { audio.pause(); audio.currentTime = 0; }
+                    audio.volume = targetVol; 
+                    clearInterval(fadeIntervals[id]);
+                    if (targetVol <= 0.01) { audio.pause(); audio.currentTime = 0; audio.volume = 0; }
                     if (callback) callback();
-                } else audio.volume = newVol;
-            }, 20);
+                } else { 
+                    audio.volume = newVol; 
+                }
+            }, stepTime);
         }
 
         function toggleMusic(name) {
             const t = tracks[name]; const btn = document.getElementById(`btn-${name}`);
-            if(!t.paused) { t.volume=0; t.pause(); t.currentTime=0; btn.classList.remove('playing'); }
+            if(!t.paused && t.volume > 0) { 
+                // FADE OUT (1 secondo)
+                fadeAudio(t, 0, 1000, () => btn.classList.remove('playing')); 
+            }
             else { 
-                Object.values(tracks).forEach(x=>{x.pause(); x.currentTime=0;}); 
-                document.querySelectorAll('.audio-grid .btn-sound').forEach(b=>b.classList.remove('playing'));
+                // Ferma altre tracce
+                Object.values(tracks).forEach(x=>{ if(x!==t && !x.paused) fadeAudio(x, 0, 1000); }); 
+                document.querySelectorAll('.audio-grid .btn-sound').forEach(b=>{ if(b!==btn) b.classList.remove('playing'); });
+                
+                // Pausa video se parte musica
                 if(localPlayer && typeof localPlayer.pauseVideo === 'function') localPlayer.pauseVideo();
-                t.volume=0.7; t.play(); btn.classList.add('playing'); 
+                
+                // FADE IN (1 secondo) - RIPRISTINATO
+                let target = isTalkover ? musicVolume*0.2 : musicVolume;
+                fadeAudio(t, target, 1000); 
+                btn.classList.add('playing'); 
             }
         }
-        function toggleSfx(name) { sfx[name].currentTime=0; sfx[name].play(); }
-        function setTalkover(active) { Object.values(tracks).forEach(t => { if(!t.paused) t.volume = active ? 0.2 : 0.7; }); document.getElementById('btn-talkover').classList.toggle('active', active); }
+
+        function toggleSfx(name) { 
+            const s = instantSfx[name]; const btn = document.getElementById(`btn-${name}`);
+            if(!s.paused) fadeAudio(s, 0, 300, () => btn.classList.remove('playing'));
+            else { 
+                s.currentTime=0; 
+                s.volume = sfxVolume; 
+                s.play(); 
+                btn.classList.add('playing'); 
+            } 
+        }
+
+        function setTalkover(active) { 
+            isTalkover = active; 
+            document.getElementById('btn-talkover').classList.toggle('active', active); 
+            Object.values(tracks).forEach(t => { 
+                if(!t.paused && t.volume > 0) fadeAudio(t, active ? musicVolume*0.2 : musicVolume, 200); 
+            }); 
+        }
         
         function updateMusicVolume(v) { musicVolume = parseFloat(v); Object.values(tracks).forEach(t => { if(!t.paused) t.volume = isTalkover ? musicVolume*0.2 : musicVolume; }); }
         function updateSfxVolume(v) { sfxVolume = parseFloat(v); Object.values(instantSfx).forEach(s => s.volume = sfxVolume); sfxVai.volume = sfxVolume; }
@@ -322,7 +333,7 @@
             if(playlist[index].id) {
                 if(localPlayer) localPlayer.loadVideoById(playlist[index].id);
                 sendRemote('load', playlist[index].id);
-                Object.values(tracks).forEach(t => { t.pause(); t.currentTime=0; });
+                Object.values(tracks).forEach(t => { if(!t.paused) fadeAudio(t, 0, 500); });
                 document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('playing'));
             } else { alert("Nessun Video"); }
         }
