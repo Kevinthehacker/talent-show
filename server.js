@@ -8,37 +8,40 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// IMPORTANTE PER RENDER: Usa la porta assegnata o la 3000 se sei in locale
 const PORT = process.env.PORT || 3000;
 
-// --- DEBUG: Vediamo cosa c'è nella cartella su Render ---
-console.log("📂 Cartella di lavoro:", __dirname);
-const files = fs.readdirSync(__dirname);
-console.log("📄 File trovati:", files.join(", "));
+// --- 1. CONFIGURAZIONE PERCORSI ---
+// Definiamo dove si trova la cartella 'public' rispetto a server.js
+const publicPath = path.join(__dirname, 'public');
 
-// SERVE I FILE STATICI
-// Questo dice: "Cerca i file html/mp3 direttamente nella cartella principale"
-app.use(express.static(__dirname));
+console.log("📂 Cartella Root:", __dirname);
+console.log("📂 Cartella Public:", publicPath);
 
-// ROTTE ESPLICITE (Per sicurezza su Render)
+// Controllo di sicurezza: Vediamo se i file esistono davvero lì
+if (fs.existsSync(path.join(publicPath, 'index.html'))) {
+    console.log("✅ index.html trovato in /public");
+} else {
+    console.log("❌ ERRORE: index.html NON trovato in /public. Controlla la cartella!");
+}
+
+// --- 2. SERVE I FILE STATICI ---
+// Diciamo a Express: "Tutti i file (html, mp3, css) sono dentro 'public'"
+app.use(express.static(publicPath));
+
+// --- 3. ROTTE SPECIFICHE ---
+
+// Quando vai sulla Home, invia public/index.html
 app.get('/', (req, res) => {
-    // Se index.html non esiste, evita crash e dillo
-    if (fs.existsSync(path.join(__dirname, 'index.html'))) {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    } else {
-        res.send("ERRORE: File index.html non trovato! Controlla il nome del file (maiuscole/minuscole).");
-    }
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
+// Quando vai su /regia, invia public/regia.html
 app.get('/regia', (req, res) => {
-    if (fs.existsSync(path.join(__dirname, 'regia.html'))) {
-        res.sendFile(path.join(__dirname, 'regia.html'));
-    } else {
-        res.send("ERRORE: File regia.html non trovato!");
-    }
+    res.sendFile(path.join(publicPath, 'regia.html'));
 });
 
-// --- LOGICA SOCKET.IO ---
+
+// --- 4. LOGICA SOCKET (Invariata) ---
 let stato = {
   1: { nome: "", scelta: null },
   2: { nome: "", scelta: null },
@@ -47,10 +50,8 @@ let stato = {
 };
 
 io.on('connection', (socket) => {
-  // console.log('Client connesso'); // Commentato per pulizia log
   socket.emit('aggiorna', stato);
 
-  // 1. LOGIN
   socket.on('login', (data) => {
     const { slot, nome } = data;
     if (stato[slot]) {
@@ -61,9 +62,8 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 2. VOTO
   socket.on('voto', (data) => handleVoto(data));
-  socket.on('scelta', (data) => handleVoto(data)); // Compatibilità
+  socket.on('scelta', (data) => handleVoto(data));
 
   function handleVoto(data) {
     const { slot, nome, scelta } = data;
@@ -71,34 +71,22 @@ io.on('connection', (socket) => {
       if(nome) stato[slot].nome = nome; 
       stato[slot].scelta = scelta;
       io.emit('aggiorna', stato);
-      
-      // Manda suono alla regia
-      if (scelta === 'X' || scelta === 'VAI') {
-        io.emit('suono', 'X');
-      }
+      if (scelta === 'X' || scelta === 'VAI') io.emit('suono', 'X');
     }
   }
 
-  // 3. RESET GARA (Solo voti)
   socket.on('reset', () => {
-    console.log("Reset Voti");
-    for (let i = 1; i <= 4; i++) {
-      stato[i].scelta = null;
-    }
+    for (let i = 1; i <= 4; i++) stato[i].scelta = null;
     io.emit('aggiorna', stato);
   });
 
-  // 4. RESET TOTALE (Scollega Giudici)
   socket.on('reset-giudici', () => {
-    console.log("Reset Totale");
-    for (let i = 1; i <= 4; i++) {
-      stato[i] = { nome: "", scelta: null };
-    }
+    for (let i = 1; i <= 4; i++) stato[i] = { nome: "", scelta: null };
     io.emit('aggiorna', stato);
     io.emit('logout'); 
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`✅ Server avviato sulla porta ${PORT}`);
+  console.log(`✅ Server attivo sulla porta ${PORT}`);
 });
