@@ -17,7 +17,6 @@
             padding-top: 15px; position: relative; box-sizing: border-box;
         }
 
-        /* BOX CONCORRENTE LIVE */
         .live-box {
             background: rgba(0, 0, 0, 0.7); border: 1px solid var(--neon-gold);
             padding: 10px; border-radius: 12px; margin-bottom: 15px;
@@ -29,19 +28,15 @@
         .live-label { font-size: 0.7rem; color: var(--neon-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
         .live-name { font-size: 1.1rem; font-weight: bold; margin: 0 0 10px 0; text-shadow: 0 0 5px black; }
 
-        /* PLAYER MINIATURA */
         .mini-video-wrapper {
-            width: 100%; position: relative; padding-bottom: 56.25%; /* 16:9 */
+            width: 100%; position: relative; padding-bottom: 56.25%;
             border-radius: 8px; overflow: hidden; border: 1px solid #444; background: black;
-            display: none; /* Nascosto se non c'è video */
+            display: none; 
         }
-        .mini-video-wrapper iframe {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        }
+        .mini-video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
         h2 { margin-bottom: 0.5rem; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
 
-        /* SETUP */
         #setup {
             display: flex; flex-direction: column; gap: 1rem;
             width: 90%; max-width: 350px;
@@ -60,7 +55,6 @@
             margin-top: 10px; box-shadow: 0 4px 15px rgba(0,123,255,0.4);
         }
 
-        /* PULSANTI VOTO */
         .pulsanti {
             display: none; flex-direction: column; gap: 1.5rem;
             width: 90%; max-width: 350px; flex-grow: 1; justify-content: center; padding-bottom: 20px;
@@ -72,17 +66,9 @@
         }
         .btn:active { transform: scale(0.96); }
 
-        .btn-x { 
-            background-color: #d50000; border: 3px solid #ff5252; 
-            font-size: 5rem; padding: 2rem 1rem; /* X Gigante */
-            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
-        }
-        .btn-reset { 
-            background-color: #333; color: #aaa; font-size: 0.9rem; padding: 12px; 
-            border: 1px solid #555; margin-top: auto; 
-        }
+        .btn-x { background-color: #d50000; border: 3px solid #ff5252; font-size: 5rem; padding: 2rem 1rem; box-shadow: 0 0 25px rgba(255, 0, 0, 0.5); }
+        .btn-reset { background-color: #333; color: #aaa; font-size: 0.9rem; padding: 12px; border: 1px solid #555; margin-top: auto; }
 
-        /* OVERLAY FEEDBACK */
         #feedback-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 100;
@@ -99,7 +85,6 @@
     <div class="live-box">
         <div class="live-label">🔴 In Gara</div>
         <div class="live-name" id="nome-concorrente">Attesa...</div>
-        
         <div class="mini-video-wrapper" id="mini-player-box">
             <div id="judge-player"></div>
         </div>
@@ -135,37 +120,34 @@
         let myNome = "", mySlot = null;
         let player = null;
 
-        // --- YOUTUBE API PER I GIUDICI ---
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('judge-player', {
                 height: '100%', width: '100%', videoId: '',
-                playerVars: { 
-                    'playsinline': 1, 'controls': 0, 'rel': 0, 'fs': 0, // Niente fullscreen
-                    'disablekb': 1, 'modestbranding': 1 
-                },
-                events: { 'onReady': (e) => e.target.mute() } // MUTO OBBLIGATORIO
+                playerVars: { 'playsinline': 1, 'controls': 0, 'rel': 0, 'fs': 0, 'disablekb': 1 },
+                events: { 'onReady': (e) => e.target.mute() }
             });
         }
 
-        // --- RICEZIONE DATI DALLA REGIA ---
-        // Ora riceviamo un oggetto { nome: "...", id: "..." }
+        // --- GESTIONE VIDEO DAL SERVER ---
         socket.on('cambia-concorrente', (data) => {
-            // Aggiorna Nome
             document.getElementById('nome-concorrente').innerText = data.nome;
             document.getElementById('feedback-overlay').style.display = 'none';
-
-            // Aggiorna Video (Se c'è ID)
             const box = document.getElementById('mini-player-box');
             if (data.id && data.id !== "") {
-                box.style.display = 'block'; // Mostra il box
-                if(player && player.loadVideoById) {
-                    player.loadVideoById(data.id);
-                    player.mute(); // Assicuriamoci che sia muto
-                }
+                box.style.display = 'block';
+                if(player && player.loadVideoById) { player.loadVideoById(data.id); player.mute(); }
             } else {
-                box.style.display = 'none'; // Nascondi se non c'è video
+                box.style.display = 'none';
                 if(player && player.stopVideo) player.stopVideo();
             }
+        });
+
+        // --- ASCOLTO COMANDI PLAY/PAUSA DALLA REGIA (NUOVO) ---
+        socket.on('sync-video', (azione) => {
+            if(!player || !player.playVideo) return;
+            if(azione === 'play') player.playVideo();
+            if(azione === 'pause') player.pauseVideo();
+            if(azione === 'stop') player.stopVideo();
         });
 
         // --- LOGIN ---
@@ -179,14 +161,12 @@
             document.getElementById('nomeGiudice').textContent = myNome;
         });
 
-        // --- VOTO ---
         document.getElementById('btnX').addEventListener('click', () => {
             if(!mySlot) return;
             socket.emit('voto', { slot: mySlot, scelta: 'X' });
             document.getElementById('feedback-overlay').style.display = 'flex';
         });
 
-        // --- GESTIONE RESET ---
         socket.on('aggiorna', (stato) => {
             if(mySlot && stato[mySlot] && stato[mySlot].scelta === null) {
                 document.getElementById('feedback-overlay').style.display = 'none';
