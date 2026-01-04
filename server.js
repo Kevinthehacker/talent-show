@@ -2,19 +2,43 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// IMPORTANTE PER RENDER: Usa la porta assegnata o la 3000 se sei in locale
 const PORT = process.env.PORT || 3000;
 
-// Serve i file statici (html, css, mp3)
-app.use(express.static(__dirname)); 
-// NOTA: Se hai una cartella 'public', usa: app.use(express.static(path.join(__dirname, 'public')));
-// Ma dato che hai i file nella root, usa __dirname come sopra.
+// --- DEBUG: Vediamo cosa c'è nella cartella su Render ---
+console.log("📂 Cartella di lavoro:", __dirname);
+const files = fs.readdirSync(__dirname);
+console.log("📄 File trovati:", files.join(", "));
 
-// --- STATO INIZIALE (FIX: Mai usare null, ma oggetti vuoti) ---
+// SERVE I FILE STATICI
+// Questo dice: "Cerca i file html/mp3 direttamente nella cartella principale"
+app.use(express.static(__dirname));
+
+// ROTTE ESPLICITE (Per sicurezza su Render)
+app.get('/', (req, res) => {
+    // Se index.html non esiste, evita crash e dillo
+    if (fs.existsSync(path.join(__dirname, 'index.html'))) {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    } else {
+        res.send("ERRORE: File index.html non trovato! Controlla il nome del file (maiuscole/minuscole).");
+    }
+});
+
+app.get('/regia', (req, res) => {
+    if (fs.existsSync(path.join(__dirname, 'regia.html'))) {
+        res.sendFile(path.join(__dirname, 'regia.html'));
+    } else {
+        res.send("ERRORE: File regia.html non trovato!");
+    }
+});
+
+// --- LOGICA SOCKET.IO ---
 let stato = {
   1: { nome: "", scelta: null },
   2: { nome: "", scelta: null },
@@ -23,73 +47,58 @@ let stato = {
 };
 
 io.on('connection', (socket) => {
-  console.log('Nuovo client connesso');
-
-  // Appena uno si collega, gli mandiamo la situazione attuale
+  // console.log('Client connesso'); // Commentato per pulizia log
   socket.emit('aggiorna', stato);
 
-  // --- 1. LOGIN GIUDICE (Per vedere il nome prima che voti) ---
+  // 1. LOGIN
   socket.on('login', (data) => {
-    // data può essere { slot: 1, nome: "Mario" }
     const { slot, nome } = data;
     if (stato[slot]) {
       stato[slot].nome = nome;
-      stato[slot].scelta = null; // Reset voto al login
+      stato[slot].scelta = null;
       io.emit('aggiorna', stato);
-      console.log(`Giudice connesso allo slot ${slot}: ${nome}`);
+      console.log(`Login Slot ${slot}: ${nome}`);
     }
   });
 
-  // --- 2. VOTO (O SCELTA) ---
-  // Gestiamo sia 'voto' che 'scelta' per compatibilità con vecchi codici
+  // 2. VOTO
   socket.on('voto', (data) => handleVoto(data));
-  socket.on('scelta', (data) => handleVoto(data));
+  socket.on('scelta', (data) => handleVoto(data)); // Compatibilità
 
   function handleVoto(data) {
     const { slot, nome, scelta } = data;
-    
     if (stato[slot]) {
-      // Aggiorniamo il nome se presente, altrimenti teniamo quello vecchio
       if(nome) stato[slot].nome = nome; 
-      
       stato[slot].scelta = scelta;
-
-      // Aggiorna tutti
       io.emit('aggiorna', stato);
-
-      // Se è X o VAI, manda il suono
+      
+      // Manda suono alla regia
       if (scelta === 'X' || scelta === 'VAI') {
-        io.emit('suono', scelta);
+        io.emit('suono', 'X');
       }
     }
   }
 
-  // --- 3. RESET SOLO VOTI (Nuovo Concorrente) ---
+  // 3. RESET GARA (Solo voti)
   socket.on('reset', () => {
-    console.log("Reset Voti richiesto");
+    console.log("Reset Voti");
     for (let i = 1; i <= 4; i++) {
-      // Manteniamo il nome, cancelliamo solo la scelta
       stato[i].scelta = null;
     }
     io.emit('aggiorna', stato);
   });
 
-  // --- 4. RESET TOTALE (Scollega Giudici) ---
+  // 4. RESET TOTALE (Scollega Giudici)
   socket.on('reset-giudici', () => {
-    console.log("Reset Totale richiesto");
+    console.log("Reset Totale");
     for (let i = 1; i <= 4; i++) {
-      // Reimposta a oggetto vuoto (NON NULL, altrimenti crasha la regia)
       stato[i] = { nome: "", scelta: null };
     }
     io.emit('aggiorna', stato);
-    io.emit('logout'); // Comando per far ricaricare i telefoni dei giudici
-  });
-
-  socket.on('disconnect', () => {
-    // console.log('Client disconnesso');
+    io.emit('logout'); 
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`Server attivo su http://localhost:${PORT}`);
+  console.log(`✅ Server avviato sulla porta ${PORT}`);
 });
