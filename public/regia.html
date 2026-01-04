@@ -362,7 +362,10 @@
             timerReset();
             
             // INVIO NOME AL SERVER
-            socket.emit('set-concorrente', playlist[index].nome);
+            socket.emit('set-concorrente', { 
+                nome: playlist[index].nome, 
+                id: playlist[index].id 
+            });
 
             const vid = playlist[index].id;
             if(vid) {
