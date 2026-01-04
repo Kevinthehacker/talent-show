@@ -5,7 +5,6 @@ const inputNome = document.getElementById('nome');
 const selectSlot = document.getElementById('slot');
 const btnConferma = document.getElementById('btnConferma');
 const btnX = document.getElementById('btnX');
-const btnVAI = document.getElementById('btnVAI'); // Assicurati che nell'HTML sia btnVAI o btnVai
 const btnResetNome = document.getElementById('btnResetNome');
 const setup = document.getElementById('setup');
 const pulsanti = document.getElementById('pulsanti');
@@ -90,7 +89,3 @@ function inviaVoto(scelta) {
 // Click su X
 btnX.addEventListener('click', () => inviaVoto('X'));
 
-// Click su VAI (SI)
-if(btnVAI) {
-    btnVAI.addEventListener('click', () => inviaVoto('VAI'));
-}
