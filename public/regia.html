@@ -2,11 +2,11 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Regia OGT - KARAOKE SYNC</title>
+    <title>Regia OGT - ACTIVE SYNC</title>
     <style>
         :root { 
             --dark: #121212; --panel: #1e1e1e; --accent: #ffd700; 
-            --red: #d32f2f; --green: #388e3c; --blue: #1976d2;
+            --red: #d32f2f; --green: #00e676; --blue: #1976d2;
             --purple: #7b1fa2; --orange: #f57c00; --teal: #009688;
         }
         
@@ -44,7 +44,7 @@
         .btn-sfx:active { transform: scale(0.95); }
         .btn-sfx.playing { background: #455a64; color: var(--accent); border-color: var(--accent); }
 
-        /* CONTROLS */
+        /* CONTROLS & MIXER */
         .pro-controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px; }
         .btn-talkover { background: #ff9800; color: black; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
         .btn-talkover.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
@@ -52,8 +52,9 @@
         
         .mixer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; margin-top: 10px; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); height: 5px; }
+        input#volSfx { accent-color: #009688; }
 
-        /* VIDEO */
+        /* VIDEO & PROJECTOR STATUS */
         .right-bottom-container { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
         .panel-player { flex: 2; display: flex; flex-direction: column; min-height: 0; padding-bottom: 5px; }
         
@@ -64,21 +65,22 @@
             display: flex; justify-content: space-between; align-items: center;
             background: #000; padding: 5px 10px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #333;
         }
-        .status-led { width: 10px; height: 10px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; }
-        .status-led.on { background: #00e676; box-shadow: 0 0 8px #00e676; }
+        .status-led { width: 12px; height: 12px; border-radius: 50%; background: #333; display: inline-block; margin-right: 5px; transition: 0.2s; }
+        .status-led.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .status-led.syncing { background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: blink 0.5s infinite; }
+        .status-led.off { background: var(--red); }
         .status-text { font-size: 0.8rem; font-weight: bold; color: #888; }
         
         .btn-open-proj { background: #333; color: white; border: 1px solid #555; font-size: 0.7rem; padding: 3px 8px; cursor: pointer; border-radius: 3px; }
-        
-        /* SYNC CONTROLS */
-        .sync-controls { display: flex; gap: 5px; margin-top: 5px; justify-content: flex-end; }
-        .btn-sync { background: #444; border: none; color: #ccc; font-size: 0.7rem; cursor: pointer; padding: 2px 5px; border-radius: 3px; }
-        .btn-sync:hover { background: #666; color: white; }
+        .btn-sync { background: #444; border: 1px solid #666; color: white; font-size: 0.7rem; cursor: pointer; padding: 3px 8px; border-radius: 3px; }
+        .btn-sync:active { background: var(--accent); color: black; }
 
         .panel-memo { flex: 1; display: flex; flex-direction: column; min-height: 100px; }
         textarea#memo-pad { width: 100%; height: 100%; background: #111; border: 1px solid #333; color: #ddd; resize: none; padding: 8px; font-family: monospace; }
+        
+        @keyframes blink { 50% { opacity: 0.5; } }
         .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; display: inline-block; }
-        .conn-dot.connected { background: #00e676; }
+        .conn-dot.connected { background: var(--green); }
     </style>
 </head>
 <body>
@@ -136,12 +138,10 @@
                     <div class="projector-status-bar">
                         <div>
                             <span id="proj-led" class="status-led off"></span>
-                            <span id="proj-text" class="status-text">OFFLINE</span>
+                            <span id="proj-text" class="status-text">PROIETTORE OFFLINE</span>
                         </div>
-                        <div>
-                            <button class="btn-sync" onclick="adjustSync(-50)">-50ms</button>
-                            <span style="font-size:0.7rem; color:#888" id="sync-val">300ms</span>
-                            <button class="btn-sync" onclick="adjustSync(+50)">+50ms</button>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-sync" onclick="forceResync()">⚡ FORZA SYNC</button>
                             <button class="btn-open-proj" onclick="openProjector()">📺 APRI POPUP</button>
                         </div>
                     </div>
@@ -172,7 +172,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     
     <script>
-        // --- PLAYLIST DEFINITIVA 16 TRACCE ---
+        // --- PLAYLIST ---
         const playlist = [
             { nome: "1. A Natale Puoi",          id: "IIIGrh2IW70" },
             { nome: "2. Piccoli aiutanti di BN", id: "yogiJpFmuAA" },
@@ -192,10 +192,6 @@
             { nome: "16. Anna Marti",            id: "Kwx-3ihxiCQ" }
         ];
 
-        // --- LATENCY COMPENSATION (Il segreto per la sync) ---
-        // Il proiettore riceve il comando. Il PC aspetta X ms prima di far partire l'audio/video locale.
-        let SYNC_DELAY = 300; // ms di ritardo per il master
-
         // RENDER LISTA
         const listContainer = document.getElementById('lista-bottoni');
         playlist.forEach((item, index) => {
@@ -207,7 +203,7 @@
             listContainer.appendChild(btn);
         });
 
-        // AUDIO SYSTEM
+        // AUDIO ENGINE
         const tracks = {
             sigla: document.getElementById('track-sigla'),
             sottofondo: document.getElementById('track-sottofondo'),
@@ -250,7 +246,9 @@
             } else {
                 Object.values(tracks).forEach(t => { if(t !== audio && !t.paused) fadeAudio(t, 0, 1000); });
                 document.querySelectorAll('.audio-grid .btn-sound').forEach(b => { if(b!==btn) b.classList.remove('playing'); });
-                controlDualPlayer('pause');
+                
+                if(localPlayer && typeof localPlayer.pauseVideo === 'function') localPlayer.pauseVideo();
+
                 fadeAudio(audio, isTalkover ? musicVolume*0.2 : musicVolume, 100);
                 btn.classList.add('playing');
             }
@@ -272,7 +270,8 @@
         function updateSfxVolume(v) { sfxVolume = parseFloat(v); Object.values(instantSfx).forEach(s => s.volume = sfxVolume); sfxVai.volume = sfxVolume; }
 
         function panicMode() {
-            controlDualPlayer('stop');
+            if(localPlayer) localPlayer.stopVideo();
+            sendToRemote('stop');
             Object.values(tracks).concat(Object.values(instantSfx)).concat([sfxVai]).forEach(a => { a.pause(); a.currentTime=0; });
             document.querySelectorAll('.playing').forEach(b => b.classList.remove('playing'));
             timerStop();
@@ -301,23 +300,16 @@
         document.addEventListener('keyup', (e) => { if(e.key.toLowerCase() === 't') setTalkover(false); });
 
         // ==========================================
-        //  GESTIONE DUAL VIDEO + SYNC HACK
+        //  ACTIVE SYNC VIDEO ENGINE
         // ==========================================
-        let localPlayer, remoteWindow = null;
-        
-        function adjustSync(val) {
-            SYNC_DELAY += val;
-            if(SYNC_DELAY < 0) SYNC_DELAY = 0;
-            document.getElementById('sync-val').innerText = SYNC_DELAY + "ms";
-        }
+        let localPlayer;
+        let remoteWindow = null;
+        let syncInterval = null;
 
         function onYouTubeIframeAPIReady() {
             localPlayer = new YT.Player('player', {
                 height: '100%', width: '100%', videoId: '',
-                playerVars: { 
-                    'playsinline': 1, 'rel': 0, 'origin': window.location.origin, 
-                    'suggestedQuality': 'small' // RISPARMIA CPU SUL MASTER!
-                },
+                playerVars: { 'playsinline': 1, 'rel': 0, 'origin': window.location.origin },
                 events: { 
                     'onReady': e => { e.target.unMute(); e.target.setVolume(100); }, 
                     'onStateChange': onLocalStateChange 
@@ -325,37 +317,18 @@
             });
         }
 
-        // Il Master comanda, ma con un delay strategico per allinearsi al remoto lento
         function onLocalStateChange(e) {
-            // Se l'utente clicca PAUSA o STOP sul master, inviamo subito al remoto
-            if(e.data === YT.PlayerState.PAUSED) sendToRemote('pause');
-            if(e.data === YT.PlayerState.ENDED) sendToRemote('stop');
-            
-            // SE L'UTENTE CLICCA PLAY SUL MASTER:
             if(e.data === YT.PlayerState.PLAYING) {
-                // Non facciamo nulla qui, gestiamo il play manuale dal bottone di lista o controlli
                 sendToRemote('play');
+                startSyncLoop(); // AVVIA CONTROLLO SYNC
             }
-        }
-
-        function controlDualPlayer(action, param) {
-            // 1. Manda al remoto SUBITO (perché è lento)
-            sendToRemote(action, param);
-
-            // 2. Esegui sul locale con RITARDO (per sincronizzarsi)
-            if(localPlayer && typeof localPlayer.loadVideoById === 'function') {
-                if(action === 'load') {
-                    // Carica e metti in pausa subito
-                    localPlayer.loadVideoById(param);
-                    localPlayer.pauseVideo(); 
-                } else if(action === 'play') {
-                    // TRUCCO SYNC: Aspetta SYNC_DELAY ms prima di far partire l'audio
-                    setTimeout(() => localPlayer.playVideo(), SYNC_DELAY);
-                } else if(action === 'pause') {
-                    localPlayer.pauseVideo();
-                } else if(action === 'stop') {
-                    localPlayer.stopVideo();
-                }
+            else if(e.data === YT.PlayerState.PAUSED) {
+                sendToRemote('pause');
+                stopSyncLoop();
+            }
+            else if(e.data === YT.PlayerState.ENDED) {
+                sendToRemote('stop');
+                stopSyncLoop();
             }
         }
 
@@ -366,34 +339,45 @@
             
             const vid = playlist[index].id;
             if(vid) {
-                // Carica e metti in PAUSA su entrambi
-                controlDualPlayer('load', vid);
-                // Stoppa musica loop
+                // 1. Carica Locale (Master)
+                if(localPlayer) { localPlayer.loadVideoById(vid); localPlayer.unMute(); localPlayer.setVolume(100); }
+                // 2. Carica Remoto (Slave Muto)
+                sendToRemote('load', vid);
+                // 3. Stoppa musica
                 Object.values(tracks).forEach(t => { if(!t.paused) fadeAudio(t, 0, 500); });
                 document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('playing'));
             } else {
-                controlDualPlayer('stop');
+                if(localPlayer) localPlayer.stopVideo();
+                sendToRemote('stop');
                 alert("Nessun video ID!");
             }
         }
-        
-        // Sovrascriviamo l'onclick del player (che non possiamo intercettare facilmente)
-        // Aggiungiamo un bottone PLAY grosso che usa la nostra logica SYNC
-        // (Nota: Per semplicità, ci affidiamo al fatto che loadVideo mette in pausa e poi l'utente clicca play sul video.
-        // Se clicca play sul video YouTube, parte l'evento onStateChange -> PLAYING -> sendToRemote.
-        // Il delay lì non funzionerebbe bene. Meglio caricare, poi premere SPAZIO o avere un tasto PLAY MASTER).
-        
-        // AGGIUNTA: Tasto "P" per Play Sincronizzato se il video è caricato
-        document.addEventListener('keydown', (e) => {
-            if(e.code === 'KeyP') { // Tasto P = PLAY SYNC
-                if(localPlayer.getPlayerState() !== 1) { // Se non sta suonando
-                   controlDualPlayer('play');
-                } else {
-                   controlDualPlayer('pause');
-                }
-            }
-        });
 
+        // --- IL CUORE DEL SYNC AUTOMATICO ---
+        function startSyncLoop() {
+            if(syncInterval) clearInterval(syncInterval);
+            const statusLed = document.getElementById('proj-led');
+            const statusText = document.getElementById('proj-text');
+
+            syncInterval = setInterval(() => {
+                if(!remoteWindow || remoteWindow.closed || !localPlayer) return;
+                
+                // Chiediamo al remoto il suo tempo
+                remoteWindow.postMessage({ action: 'getTime' }, '*');
+            }, 500); // Controlla ogni 0.5 secondi
+        }
+
+        function stopSyncLoop() {
+            if(syncInterval) clearInterval(syncInterval);
+            document.getElementById('proj-led').className = 'status-led on'; // Torna verde statico
+        }
+
+        function forceResync() {
+            if(localPlayer && remoteWindow) {
+                const t = localPlayer.getCurrentTime();
+                remoteWindow.postMessage({ action: 'seek', param: t }, '*');
+            }
+        }
 
         function sendToRemote(action, param) {
             if(remoteWindow && !remoteWindow.closed) {
@@ -401,6 +385,7 @@
             }
         }
 
+        // --- GESTIONE POPUP PROIETTORE ---
         function openProjector() {
             remoteWindow = window.open("", "Proiettore", "width=800,height=600,menubar=no,toolbar=no");
             if(!remoteWindow) { alert("SBLOCCA I POPUP!"); return; }
@@ -418,21 +403,56 @@
                             'onReady': e => { e.target.mute(); window.opener.postMessage('READY','*'); }
                         }});
                     }
+                    
                     window.addEventListener('message', e => {
                         if(!p || !p.loadVideoById) return;
-                        if(e.data.action==='load') { p.loadVideoById(e.data.param); p.pauseVideo(); }
-                        if(e.data.action==='play') p.playVideo();
-                        if(e.data.action==='pause') p.pauseVideo();
-                        if(e.data.action==='stop') p.stopVideo();
+                        
+                        const a = e.data.action;
+                        const v = e.data.param;
+
+                        if(a==='load') { p.loadVideoById(v); p.pauseVideo(); }
+                        if(a==='play') p.playVideo();
+                        if(a==='pause') p.pauseVideo();
+                        if(a==='stop') p.stopVideo();
+                        if(a==='seek') p.seekTo(v);
+                        
+                        // Risponde con il tempo attuale per il sync check
+                        if(a==='getTime') {
+                            window.opener.postMessage({ type: 'SYNC_CHECK', time: p.getCurrentTime() }, '*');
+                        }
                     });
                 <\/script></body></html>
             `);
         }
 
+        // RICEZIONE DATI DAL PROIETTORE
         window.addEventListener('message', (e) => {
             const led = document.getElementById('proj-led');
             const txt = document.getElementById('proj-text');
-            if(e.data === 'READY') { led.className = 'status-led on'; txt.innerText = "PRONTO (HD)"; txt.style.color="#00e676"; }
+
+            if(e.data === 'READY') { 
+                led.className = 'status-led on'; txt.innerText = "PRONTO (MUTO)"; txt.style.color="#00e676"; 
+            }
+            
+            // LOGICA DI SYNC CHECK
+            if(e.data.type === 'SYNC_CHECK' && localPlayer) {
+                const remoteTime = e.data.time;
+                const localTime = localPlayer.getCurrentTime();
+                const diff = Math.abs(localTime - remoteTime);
+
+                if(diff > 0.3) { // Se sfasati di più di 0.3 secondi
+                    led.className = 'status-led syncing'; // Led Arancione
+                    txt.innerText = "SYNCING...";
+                    txt.style.color = "orange";
+                    
+                    // FORZA IL PROIETTORE AL TEMPO DEL MASTER
+                    remoteWindow.postMessage({ action: 'seek', param: localTime }, '*');
+                } else {
+                    led.className = 'status-led on'; // Led Verde
+                    txt.innerText = "IN SYNC";
+                    txt.style.color = "#00e676";
+                }
+            }
         });
 
         // SOCKET
