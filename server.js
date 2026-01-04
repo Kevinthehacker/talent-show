@@ -2,35 +2,19 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Porta per Render (o 3000 in locale)
 const PORT = process.env.PORT || 3000;
-
-// --- 1. CONFIGURAZIONE CARTELLE ---
-// Il server è nella root, i file html sono in /public
 const publicPath = path.join(__dirname, 'public');
 
-// Debug per sicurezza (ti dice dove sta cercando i file)
-console.log("📂 Cartella Public:", publicPath);
-
-// Serve i file statici (HTML, CSS, MP3)
 app.use(express.static(publicPath));
 
-// --- 2. ROTTE (Per far funzionare i link su Render) ---
-app.get('/', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
+app.get('/regia', (req, res) => res.sendFile(path.join(publicPath, 'regia.html')));
 
-app.get('/regia', (req, res) => {
-    res.sendFile(path.join(publicPath, 'regia.html'));
-});
-
-// --- 3. MEMORIA DEL SERVER ---
 let stato = {
   1: { nome: "", scelta: null },
   2: { nome: "", scelta: null },
@@ -38,71 +22,55 @@ let stato = {
   4: { nome: "", scelta: null }
 };
 
-let concorrenteAttuale = { nome: "In attesa dell'inizio...", id: "" };
+let concorrenteAttuale = { nome: "In attesa...", id: "" };
 
-// --- 4. GESTIONE SOCKET (La Logica) ---
 io.on('connection', (socket) => {
   socket.emit('aggiorna', stato);
   socket.emit('cambia-concorrente', concorrenteAttuale);
 
-  // A. LOGIN GIUDICE
   socket.on('login', (data) => {
     const { slot, nome } = data;
     if (stato[slot]) {
       stato[slot].nome = nome;
-      stato[slot].scelta = null; // Resetta il voto precedente se cambia nome
+      stato[slot].scelta = null;
       io.emit('aggiorna', stato);
-      console.log(`✅ Giudice connesso Slot ${slot}: ${nome}`);
+      console.log(`Login Slot ${slot}: ${nome}`);
     }
   });
 
-  // B. VOTO (Solo X o VAI)
   socket.on('voto', (data) => {
     const { slot, scelta } = data;
     if (stato[slot]) {
       stato[slot].scelta = scelta;
-      
-      // Aggiorna tutti (Regia e altri)
       io.emit('aggiorna', stato);
-      
-      // Se vota, manda il suono alla regia
-      if (scelta === 'X' || scelta === 'VAI') {
-          io.emit('suono', scelta);
-      }
+      if (scelta === 'X' || scelta === 'VAI') io.emit('suono', 'X');
     }
   });
 
-  // C. CAMBIO NOME CONCORRENTE (Dalla Regia ai Telefoni)
   socket.on('set-concorrente', (dati) => {
       concorrenteAttuale = dati;
       io.emit('cambia-concorrente', concorrenteAttuale); 
-      console.log("🎤 In gara:", dati.nome);
   });
 
-  // D. RESET GARA (Nuovo Concorrente)
+  // --- NUOVO: SINCRONIZZAZIONE VIDEO GIUDICI ---
+  socket.on('controllo-video', (azione) => {
+      // azione può essere 'play', 'pause', 'stop'
+      io.emit('sync-video', azione);
+  });
+  // ---------------------------------------------
+
   socket.on('reset', () => {
-    console.log("🔄 Reset Voti (Nuovo Concorrente)");
-    for (let i = 1; i <= 4; i++) {
-      stato[i].scelta = null; // Cancella solo i voti, tiene i nomi
-    }
+    for (let i = 1; i <= 4; i++) stato[i].scelta = null;
     io.emit('aggiorna', stato);
   });
 
-  // E. RESET TOTALE (Nuova Giuria)
   socket.on('reset-giudici', () => {
-    console.log("⚠️ Reset Totale Giudici");
-    for (let i = 1; i <= 4; i++) {
-      stato[i] = { nome: "", scelta: null }; // Cancella tutto
-    }
+    for (let i = 1; i <= 4; i++) stato[i] = { nome: "", scelta: null };
     io.emit('aggiorna', stato);
-    io.emit('logout'); // Forza il riavvio della pagina sui telefoni
+    io.emit('logout'); 
   });
 });
 
-// Avvio Server
 server.listen(PORT, () => {
-  console.log(`🚀 Server attivo sulla porta ${PORT}`);
-  console.log(`- Giudici: http://localhost:${PORT}/`);
-  console.log(`- Regia:   http://localhost:${PORT}/regia`);
+  console.log(`✅ Server attivo su porta ${PORT}`);
 });
-
