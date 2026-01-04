@@ -14,37 +14,46 @@
             background-size: cover; color: var(--text);
             min-height: 100vh; overflow: hidden;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 20px; position: relative; box-sizing: border-box;
+            padding-top: 15px; position: relative; box-sizing: border-box;
         }
 
         /* BOX CONCORRENTE LIVE */
         .live-box {
-            background: rgba(0, 0, 0, 0.6); border: 1px solid var(--neon-gold);
-            padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.7); border: 1px solid var(--neon-gold);
+            padding: 10px; border-radius: 12px; margin-bottom: 15px;
             width: 90%; max-width: 350px; text-align: center;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
             backdrop-filter: blur(5px);
+            display: flex; flex-direction: column; align-items: center;
         }
-        .live-label { font-size: 0.8rem; color: var(--neon-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
-        .live-name { font-size: 1.3rem; font-weight: bold; margin: 0; text-shadow: 0 0 5px black; }
+        .live-label { font-size: 0.7rem; color: var(--neon-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+        .live-name { font-size: 1.1rem; font-weight: bold; margin: 0 0 10px 0; text-shadow: 0 0 5px black; }
 
-        h2 { margin-bottom: 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        /* PLAYER MINIATURA */
+        .mini-video-wrapper {
+            width: 100%; position: relative; padding-bottom: 56.25%; /* 16:9 */
+            border-radius: 8px; overflow: hidden; border: 1px solid #444; background: black;
+            display: none; /* Nascosto se non c'è video */
+        }
+        .mini-video-wrapper iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        h2 { margin-bottom: 0.5rem; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
 
         /* SETUP */
         #setup {
             display: flex; flex-direction: column; gap: 1rem;
             width: 90%; max-width: 350px;
-            background: rgba(0, 0, 0, 0.4); padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5); padding: 1.5rem;
             border-radius: 12px; backdrop-filter: blur(5px);
         }
-
         #setup input, #setup select {
             padding: 1rem; font-size: 1.1rem; border-radius: 8px;
             border: 2px solid var(--neon-red); outline: none;
             background: rgba(0,0,0,0.5); color: white; width: 100%;
             box-shadow: 0 0 8px var(--neon-red); box-sizing: border-box;
         }
-
         #setup button {
             padding: 1rem; font-size: 1.2rem; border: none; border-radius: 12px;
             background-color: #007bff; color: white; cursor: pointer; font-weight: bold;
@@ -53,38 +62,33 @@
 
         /* PULSANTI VOTO */
         .pulsanti {
-            display: none; flex-direction: column; gap: 2rem; /* Spazio aumentato */
-            width: 90%; max-width: 350px; flex-grow: 1; justify-content: center; padding-bottom: 30px;
+            display: none; flex-direction: column; gap: 1.5rem;
+            width: 90%; max-width: 350px; flex-grow: 1; justify-content: center; padding-bottom: 20px;
         }
-
         .btn {
-            padding: 1.5rem; font-size: 1.5rem; border: none; border-radius: 15px;
-            cursor: pointer; transition: transform 0.1s; width: 100%;
+            border: none; border-radius: 15px; cursor: pointer; width: 100%;
             font-weight: bold; color: white; text-shadow: 0 2px 2px rgba(0,0,0,0.5);
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
         .btn:active { transform: scale(0.96); }
 
-        /* PULSANTE X GIGANTE */
         .btn-x { 
             background-color: #d50000; border: 3px solid #ff5252; 
-            font-size: 4rem; /* Molto grande */
-            padding: 3rem 1rem;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+            font-size: 5rem; padding: 2rem 1rem; /* X Gigante */
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
         }
-        
         .btn-reset { 
-            background-color: #333; color: #aaa; font-size: 0.9rem; padding: 10px; 
-            border: 1px solid #555; margin-top: auto; /* Spinge in fondo */
+            background-color: #333; color: #aaa; font-size: 0.9rem; padding: 12px; 
+            border: 1px solid #555; margin-top: auto; 
         }
 
-        /* OVERLAY FEEDBACK VOTO */
+        /* OVERLAY FEEDBACK */
         #feedback-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
+            background: rgba(0,0,0,0.95); z-index: 100;
             display: none; flex-direction: column; align-items: center; justify-content: center;
         }
-        .feedback-icon { font-size: 8rem; margin-bottom: 20px; color: #d50000; text-shadow: 0 0 20px red; }
+        .feedback-icon { font-size: 8rem; margin-bottom: 20px; }
         .feedback-text { font-size: 1.5rem; color: white; }
 
     </style>
@@ -93,8 +97,12 @@
 <body class="mobile">
 
     <div class="live-box">
-        <div class="live-label">🔴 In Gara Adesso</div>
-        <div class="live-name" id="nome-concorrente">In attesa...</div>
+        <div class="live-label">🔴 In Gara</div>
+        <div class="live-name" id="nome-concorrente">Attesa...</div>
+        
+        <div class="mini-video-wrapper" id="mini-player-box">
+            <div id="judge-player"></div>
+        </div>
     </div>
 
     <h2>Giudice <span id="nomeGiudice" style="font-weight:bold; color:var(--neon-gold);"></span></h2>
@@ -102,28 +110,91 @@
     <div id="setup">
         <label>Nome:</label>
         <input type="text" id="nome" placeholder="Il tuo nome" />
-        
         <label>Postazione:</label>
         <select id="slot">
-            <option value="1">Giudice 1</option>
-            <option value="2">Giudice 2</option>
-            <option value="3">Giudice 3</option>
-            <option value="4">Giudice 4</option>
+            <option value="1">Giudice 1</option><option value="2">Giudice 2</option>
+            <option value="3">Giudice 3</option><option value="4">Giudice 4</option>
         </select>
         <button id="btnConferma">ENTRA</button>
     </div>
 
     <div id="pulsanti" class="pulsanti">
         <button id="btnX" class="btn btn-x">❌</button>
-        <button id="btnResetNome" class="btn btn-reset">Esci / Cambia Nome</button>
+        <button id="btnResetNome" class="btn btn-reset">Esci</button>
     </div>
 
     <div id="feedback-overlay">
         <div class="feedback-icon">❌</div>
-        <div class="feedback-text">VOTO REGISTRATO</div>
+        <div class="feedback-text">VOTO INVIATO</div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="client-mobile.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const socket = io();
+        let myNome = "", mySlot = null;
+        let player = null;
+
+        // --- YOUTUBE API PER I GIUDICI ---
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('judge-player', {
+                height: '100%', width: '100%', videoId: '',
+                playerVars: { 
+                    'playsinline': 1, 'controls': 0, 'rel': 0, 'fs': 0, // Niente fullscreen
+                    'disablekb': 1, 'modestbranding': 1 
+                },
+                events: { 'onReady': (e) => e.target.mute() } // MUTO OBBLIGATORIO
+            });
+        }
+
+        // --- RICEZIONE DATI DALLA REGIA ---
+        // Ora riceviamo un oggetto { nome: "...", id: "..." }
+        socket.on('cambia-concorrente', (data) => {
+            // Aggiorna Nome
+            document.getElementById('nome-concorrente').innerText = data.nome;
+            document.getElementById('feedback-overlay').style.display = 'none';
+
+            // Aggiorna Video (Se c'è ID)
+            const box = document.getElementById('mini-player-box');
+            if (data.id && data.id !== "") {
+                box.style.display = 'block'; // Mostra il box
+                if(player && player.loadVideoById) {
+                    player.loadVideoById(data.id);
+                    player.mute(); // Assicuriamoci che sia muto
+                }
+            } else {
+                box.style.display = 'none'; // Nascondi se non c'è video
+                if(player && player.stopVideo) player.stopVideo();
+            }
+        });
+
+        // --- LOGIN ---
+        document.getElementById('btnConferma').addEventListener('click', () => {
+            myNome = document.getElementById('nome').value.trim();
+            mySlot = document.getElementById('slot').value;
+            if (!myNome) return alert('Nome?');
+            socket.emit('login', { nome: myNome, slot: mySlot });
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('pulsanti').style.display = 'flex';
+            document.getElementById('nomeGiudice').textContent = myNome;
+        });
+
+        // --- VOTO ---
+        document.getElementById('btnX').addEventListener('click', () => {
+            if(!mySlot) return;
+            socket.emit('voto', { slot: mySlot, scelta: 'X' });
+            document.getElementById('feedback-overlay').style.display = 'flex';
+        });
+
+        // --- GESTIONE RESET ---
+        socket.on('aggiorna', (stato) => {
+            if(mySlot && stato[mySlot] && stato[mySlot].scelta === null) {
+                document.getElementById('feedback-overlay').style.display = 'none';
+            }
+        });
+        socket.on('logout', () => location.reload());
+        document.getElementById('btnResetNome').addEventListener('click', () => location.reload());
+
+    </script>
 </body>
 </html>
