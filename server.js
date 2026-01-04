@@ -8,40 +8,29 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Porta per Render (o 3000 in locale)
 const PORT = process.env.PORT || 3000;
 
-// --- 1. CONFIGURAZIONE PERCORSI ---
-// Definiamo dove si trova la cartella 'public' rispetto a server.js
+// --- 1. CONFIGURAZIONE CARTELLE ---
+// Il server è nella root, i file html sono in /public
 const publicPath = path.join(__dirname, 'public');
 
-console.log("📂 Cartella Root:", __dirname);
+// Debug per sicurezza (ti dice dove sta cercando i file)
 console.log("📂 Cartella Public:", publicPath);
 
-// Controllo di sicurezza: Vediamo se i file esistono davvero lì
-if (fs.existsSync(path.join(publicPath, 'index.html'))) {
-    console.log("✅ index.html trovato in /public");
-} else {
-    console.log("❌ ERRORE: index.html NON trovato in /public. Controlla la cartella!");
-}
-
-// --- 2. SERVE I FILE STATICI ---
-// Diciamo a Express: "Tutti i file (html, mp3, css) sono dentro 'public'"
+// Serve i file statici (HTML, CSS, MP3)
 app.use(express.static(publicPath));
 
-// --- 3. ROTTE SPECIFICHE ---
-
-// Quando vai sulla Home, invia public/index.html
+// --- 2. ROTTE (Per far funzionare i link su Render) ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-// Quando vai su /regia, invia public/regia.html
 app.get('/regia', (req, res) => {
     res.sendFile(path.join(publicPath, 'regia.html'));
 });
 
-
-// --- 4. LOGICA SOCKET (Invariata) ---
+// --- 3. MEMORIA DEL SERVER ---
 let stato = {
   1: { nome: "", scelta: null },
   2: { nome: "", scelta: null },
@@ -49,44 +38,71 @@ let stato = {
   4: { nome: "", scelta: null }
 };
 
-io.on('connection', (socket) => {
-  socket.emit('aggiorna', stato);
+let concorrenteAttuale = "In attesa dell'inizio...";
 
+// --- 4. GESTIONE SOCKET (La Logica) ---
+io.on('connection', (socket) => {
+  // Appena qualcuno si collega, riceve lo stato e il nome del cantante
+  socket.emit('aggiorna', stato);
+  socket.emit('cambia-nome', concorrenteAttuale);
+
+  // A. LOGIN GIUDICE
   socket.on('login', (data) => {
     const { slot, nome } = data;
     if (stato[slot]) {
       stato[slot].nome = nome;
-      stato[slot].scelta = null;
+      stato[slot].scelta = null; // Resetta il voto precedente se cambia nome
       io.emit('aggiorna', stato);
-      console.log(`Login Slot ${slot}: ${nome}`);
+      console.log(`✅ Giudice connesso Slot ${slot}: ${nome}`);
     }
   });
 
-  socket.on('voto', (data) => handleVoto(data));
-  socket.on('scelta', (data) => handleVoto(data));
-
-  function handleVoto(data) {
-    const { slot, nome, scelta } = data;
+  // B. VOTO (Solo X o VAI)
+  socket.on('voto', (data) => {
+    const { slot, scelta } = data;
     if (stato[slot]) {
-      if(nome) stato[slot].nome = nome; 
       stato[slot].scelta = scelta;
+      
+      // Aggiorna tutti (Regia e altri)
       io.emit('aggiorna', stato);
-      if (scelta === 'X' || scelta === 'VAI') io.emit('suono', 'X');
+      
+      // Se vota, manda il suono alla regia
+      if (scelta === 'X' || scelta === 'VAI') {
+          io.emit('suono', scelta);
+      }
     }
-  }
+  });
 
+  // C. CAMBIO NOME CONCORRENTE (Dalla Regia ai Telefoni)
+  socket.on('set-concorrente', (nome) => {
+      concorrenteAttuale = nome;
+      io.emit('cambia-nome', concorrenteAttuale); // Aggiorna i display dei giudici
+      console.log("🎤 In gara ora:", nome);
+  });
+
+  // D. RESET GARA (Nuovo Concorrente)
   socket.on('reset', () => {
-    for (let i = 1; i <= 4; i++) stato[i].scelta = null;
+    console.log("🔄 Reset Voti (Nuovo Concorrente)");
+    for (let i = 1; i <= 4; i++) {
+      stato[i].scelta = null; // Cancella solo i voti, tiene i nomi
+    }
     io.emit('aggiorna', stato);
   });
 
+  // E. RESET TOTALE (Nuova Giuria)
   socket.on('reset-giudici', () => {
-    for (let i = 1; i <= 4; i++) stato[i] = { nome: "", scelta: null };
+    console.log("⚠️ Reset Totale Giudici");
+    for (let i = 1; i <= 4; i++) {
+      stato[i] = { nome: "", scelta: null }; // Cancella tutto
+    }
     io.emit('aggiorna', stato);
-    io.emit('logout'); 
+    io.emit('logout'); // Forza il riavvio della pagina sui telefoni
   });
 });
 
+// Avvio Server
 server.listen(PORT, () => {
-  console.log(`✅ Server attivo sulla porta ${PORT}`);
+  console.log(`🚀 Server attivo sulla porta ${PORT}`);
+  console.log(`- Giudici: http://localhost:${PORT}/`);
+  console.log(`- Regia:   http://localhost:${PORT}/regia`);
 });
